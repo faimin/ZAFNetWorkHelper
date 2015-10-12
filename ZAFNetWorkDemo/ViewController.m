@@ -2,7 +2,7 @@
 //  ViewController.m
 //  ZAFNetWorkDemo
 //
-//  Created by apple on 14/12/17.
+//  Created by Bourne on 14/12/17.
 //  Copyright (c) 2014年 Saber. All rights reserved.
 //
 
@@ -40,7 +40,7 @@
 
 	NSString *url3 = @"http://10.255.223.149:80/media/api.go?action=getDepositShowView&fromPaltform=ds_ios&paymentId=1014&token=9047a07dc6153188b690c8c740cb84f1";
 
-	__weak __typeof(* &self) weakSelf = self;
+	__weak __typeof( & *self) weakSelf = self;
 
 	[[ZAFNetWorkHelper shareInstance] requestWithURL:url3 params:nil httpMethod:@"GET" hasCertificate:NO sucess:^(id responseObject) {
 		__strong __typeof(*&weakSelf) self = weakSelf;

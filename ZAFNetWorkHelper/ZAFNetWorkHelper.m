@@ -2,9 +2,8 @@
 // ZSNetWorkService.m
 // RequestNetWork
 //
-// Created by apple on 14/11/21.
+// Created by Bourne on 14/11/21.
 // Copyright (c) 2014年 Fate.D.Saber. All rights reserved.
-// https://onedrive.live.com/edit.aspx?cid=1511C865AE1E5738&resid=1511C865AE1E5738%21642&app=OneNote
 //
 
 #import "ZAFNetWorkHelper.h"
@@ -57,7 +56,7 @@
 
 	// 3.发送请求
 	AFHTTPRequestOperation *operation = nil;
-	__weak __typeof(* &self) ws = self;
+	__weak __typeof( &*self) ws = self;
 
 	NSString *httpMethodStr = [httpMethod lowercaseString]; //转换成小写字母
 
