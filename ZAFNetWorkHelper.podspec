@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "ZAFNetWorkHelper"
-  s.version      = "0.0.1"
+  s.version      = "0.0.2"
   s.summary      = "The package of requests including GET && POST with AFNetWorking"
   s.homepage     = "https://github.com/faimin/ZAFNetWorkHelper"
   s.license      = 'MIT'
