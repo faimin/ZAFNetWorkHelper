@@ -14,14 +14,16 @@
 
 @end
 
+NSString const *url1 = @"https://daka.facenano.com/checkin/v1/app_binding?phone_number=18700000001&app_version_code=2&device=mobile_ios&company_tag=iPhone-demo&phone_imei=6D56F277-0AAA-4F32-AD01-6C55AEE75964&verification_code=3216";
+NSString *const url2 = @"http://api.douban.com/v2/movie/top250";
+NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDepositShowView&fromPaltform=ds_ios&paymentId=1014&token=9047a07dc6153188b690c8c740cb84f1";
+
 @implementation ViewController
 
 - (void)viewDidLoad
 {
 	[super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-
-	[self test];
 }
 
 - (void)didReceiveMemoryWarning
@@ -30,20 +32,22 @@
 	// Dispose of any resources that can be recreated.
 }
 
+#pragma mark - Actions
+- (IBAction)fetchDataAction:(id)sender
+{
+	[self fetchData];
+
+	[self syncGCD];
+}
+
 #pragma mark - ZAF test
 
-- (void)test
+- (void)fetchData
 {
-	NSString *url1 = @"https://daka.facenano.com/checkin/v1/app_binding?phone_number=18700000001&app_version_code=2&device=mobile_ios&company_tag=iPhone-demo&phone_imei=6D56F277-0AAA-4F32-AD01-6C55AEE75964&verification_code=3216";
-
-	NSString *url2 = @"http://api.douban.com/v2/movie/top250";
-
-	NSString *url3 = @"http://10.255.223.149:80/media/api.go?action=getDepositShowView&fromPaltform=ds_ios&paymentId=1014&token=9047a07dc6153188b690c8c740cb84f1";
-
 	__weak __typeof( & *self) weakSelf = self;
 
-	[[ZAFNetWorkHelper shareInstance] requestWithURL:url3 params:nil httpMethod:@"GET" hasCertificate:NO sucess:^(id responseObject) {
-		__strong __typeof(*&weakSelf) self = weakSelf;
+	[[ZAFNetWorkHelper shareInstance] requestWithURL:url2 params:nil httpMethod:@"GET" hasCertificate:NO sucess:^(id responseObject) {
+		__strong __typeof(&*weakSelf) self = weakSelf;
 		self.myTextView.text = [self stringWithJson:responseObject];
 		NSLog(@"\n\n%@\n\n%@", responseObject, [self stringWithJson:responseObject]);
 	} failure:^(NSError *error) {
@@ -53,12 +57,36 @@
 
 - (NSString *)stringWithJson:(id)temps //把字典和数组转换成json字符串
 {
+	if (!temps)
+	{
+		return nil;
+	}
 	NSData *jsonData = [NSJSONSerialization dataWithJSONObject:temps
 		options:NSJSONWritingPrettyPrinted error:nil];
 	NSString *strs = [[NSString alloc] initWithData:jsonData
 		encoding:NSUTF8StringEncoding];
 
 	return strs;
+}
+
+//MARK:利用GCD notify同步线程
+- (void)syncGCD
+{
+	dispatch_queue_t queue1 = dispatch_queue_create("Myqueue1", DISPATCH_QUEUE_CONCURRENT);
+	dispatch_group_t group = dispatch_group_create();
+
+	dispatch_group_async(group, queue1, ^{
+		NSLog(@"睡眠2秒");
+		sleep(2);
+	});
+	dispatch_group_async(group, queue1, ^{
+		NSLog(@"睡眠5秒");
+		sleep(5);
+	});
+
+	dispatch_group_notify(group, queue1, ^{
+		NSLog(@"执行完毕");
+	});
 }
 
 @end

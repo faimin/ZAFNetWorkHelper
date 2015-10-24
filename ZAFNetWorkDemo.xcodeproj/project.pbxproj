@@ -15,7 +15,7 @@
 		1819F19C1A411BE900A2EEA5 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1819F19A1A411BE900A2EEA5 /* LaunchScreen.xib */; };
 		1819F1A81A411BEA00A2EEA5 /* ZAFNetWorkDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1819F1A71A411BEA00A2EEA5 /* ZAFNetWorkDemoTests.m */; };
 		8C58D1DE7153408A371D4D5D /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D36E1DDC357A895DCCF48B7 /* libPods.a */; };
-		BC13A5BE1BCB653800615428 /* ZAFNetWorkHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BC13A5BD1BCB653800615428 /* ZAFNetWorkHelper.m */; settings = {ASSET_TAGS = (); }; };
+		BC13A5BE1BCB653800615428 /* ZAFNetWorkHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BC13A5BD1BCB653800615428 /* ZAFNetWorkHelper.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -388,7 +388,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -423,7 +423,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -437,7 +437,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/ZAFNetWorkDemo/Prefix.pch";
 				INFOPLIST_FILE = ZAFNetWorkDemo/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -450,7 +450,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/ZAFNetWorkDemo/Prefix.pch";
 				INFOPLIST_FILE = ZAFNetWorkDemo/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
