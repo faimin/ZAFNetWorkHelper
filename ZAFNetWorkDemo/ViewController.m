@@ -14,9 +14,11 @@
 
 @end
 
-NSString const *url1 = @"https://daka.facenano.com/checkin/v1/app_binding?phone_number=18700000001&app_version_code=2&device=mobile_ios&company_tag=iPhone-demo&phone_imei=6D56F277-0AAA-4F32-AD01-6C55AEE75964&verification_code=3216";
+//NS_ASSUME_NONNULL_BEGIN
+NSString *const url1 = @"https://daka.facenano.com/checkin/v1/app_binding?phone_number=18700000001&app_version_code=2&device=mobile_ios&company_tag=iPhone-demo&phone_imei=6D56F277-0AAA-4F32-AD01-6C55AEE75964&verification_code=3216";
 NSString *const url2 = @"http://api.douban.com/v2/movie/top250";
 NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDepositShowView&fromPaltform=ds_ios&paymentId=1014&token=9047a07dc6153188b690c8c740cb84f1";
+//NS_ASSUME_NONNULL_END
 
 @implementation ViewController
 
@@ -37,7 +39,7 @@ NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDeposit
 {
 	[self fetchData];
 
-	[self syncGCD];
+	//[self syncGCD];
 }
 
 #pragma mark - ZAF test
@@ -46,19 +48,22 @@ NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDeposit
 {
 	__weak __typeof( & *self) weakSelf = self;
 
-	[[ZAFNetWorkHelper shareInstance] requestWithURL:url2 params:nil httpMethod:@"GET" hasCertificate:NO sucess:^(id responseObject) {
-		__strong __typeof(&*weakSelf) self = weakSelf;
-		self.myTextView.text = [self stringWithJson:responseObject];
-		NSLog(@"\n\n%@\n\n%@", responseObject, [self stringWithJson:responseObject]);
-	} failure:^(NSError *error) {
-		NSLog(@"\nerror:%@", error);
-	}];
+	[[ZDAFNetWorkHelper shareInstance] requestWithURL:url2
+                                                params:nil
+                                                httpMethod:HttpMethod_Get
+                                                success:^(id responseObject) {
+                                                    __strong __typeof(&*weakSelf) strongSelf = weakSelf;
+                                                    strongSelf.myTextView.text = [strongSelf stringWithJson:responseObject];
+                                                    NSLog(@"\n\n%@\n\n%@", responseObject, [strongSelf stringWithJson:responseObject]);
+                                                }
+                                                failure:^(NSError *error) {
+                                                    NSLog(@"\nerror:%@", error);
+                                                }];
 }
 
 - (NSString *)stringWithJson:(id)temps //把字典和数组转换成json字符串
 {
-	if (!temps)
-	{
+	if (!temps) {
 		return nil;
 	}
 	NSData *jsonData = [NSJSONSerialization dataWithJSONObject:temps
