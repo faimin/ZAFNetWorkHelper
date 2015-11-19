@@ -32,8 +32,13 @@
 {
 	// 1.处理URL
     NSString *URL = [NSString stringWithFormat:@"%@%@", (self.baseURLString ?: @""), URLString];
-	URL = [[URL stringByReplacingOccurrencesOfString:@" " withString:@""] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-
+	URL = [URL stringByReplacingOccurrencesOfString:@" " withString:@""];
+    if (__IPHONE_OS_VERSION_MIN_REQUIRED == __IPHONE_7_0) {
+        URL = [URL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+    }
+    else {
+        URL = [URL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    }
 	// 2.初始化请求管理对象,设置规则
 	AFHTTPSessionManager *sessionManager = [AFHTTPSessionManager manager];
 	sessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain", @"text/html", nil];
