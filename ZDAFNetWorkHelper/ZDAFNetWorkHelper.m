@@ -59,7 +59,9 @@
 	__weak __typeof(&*self) ws = self;
     switch (httpMethod) {
         case HttpMethod_Get: {
-            sessionTask = [sessionManager GET:URL parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            sessionTask = [sessionManager GET:URL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
+                //TODO:下载进度
+            } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 if (successBlock) {
                     successBlock([ws decodeData:responseObject]);
                 }
@@ -86,7 +88,9 @@
             
             if (!isFile) {
                 // 参数中不包含NSData类型
-                sessionTask = [sessionManager POST:URL parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                sessionTask = [sessionManager POST:URL parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
+                    //TODO:上传进度
+                } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     if (successBlock) {
                         successBlock([ws decodeData:responseObject]);
                     }
@@ -120,6 +124,8 @@
                                                       error:&error];
                         }
                     }
+                } progress:^(NSProgress * _Nonnull uploadProgress) {
+                    //TODO:上传进度
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     if (successBlock) {
                         successBlock([ws decodeData:responseObject]);
