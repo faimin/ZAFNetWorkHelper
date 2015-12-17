@@ -1,7 +1,7 @@
 ## ZDAFNetWork
 
 
-> * 利用[AFNetworking](https://github.com/AFNetworking/AFNetworking)把`GET`和`POST`请求封装到了一个方法中 
+>  利用[AFNetworking](https://github.com/AFNetworking/AFNetworking)把`GET`和`POST`请求封装到了一个方法中 
 > 
 -------
 
