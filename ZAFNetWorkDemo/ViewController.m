@@ -57,7 +57,7 @@ NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDeposit
                                                     NSLog(@"\n\n%@\n\n%@", responseObject, [strongSelf stringWithJson:responseObject]);
                                                 }
                                                 failure:^(NSError *error) {
-                                                    NSLog(@"\nerror:%@", error);
+                                                    NSLog(@"\nerror:%@", error.localizedDescription);
                                                 }];
 }
 

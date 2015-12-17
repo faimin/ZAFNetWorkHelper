@@ -40,18 +40,27 @@
         URL = [URL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     }
 	// 2.初始化请求管理对象,设置规则
-	AFHTTPSessionManager *sessionManager = [AFHTTPSessionManager manager];
-	sessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain", @"text/html", nil];
+	AFHTTPSessionManager *httpSessionManager = [AFHTTPSessionManager manager];
+	httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain", @"text/html", nil];
 
 	if (self.hasCertificate) {
 		///有cer证书时AF会自动从bundle中寻找并加载cer格式的证书
-		AFSecurityPolicy *securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModePublicKey];
-		securityPolicy.allowInvalidCertificates = YES;
-		sessionManager.securityPolicy = securityPolicy;
+        AFSecurityPolicy *securityPolicy = ({
+            AFSecurityPolicy *securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModePublicKey];
+            securityPolicy.allowInvalidCertificates = YES;
+            securityPolicy;
+        });
+		httpSessionManager.securityPolicy = securityPolicy;
 	}
 	else {
 		///无cer证书的情况,忽略证书,实现Https请求
-		sessionManager.securityPolicy.allowInvalidCertificates = YES;
+        AFSecurityPolicy *securityPolicy = ({
+            AFSecurityPolicy *securityPolicy = [AFSecurityPolicy defaultPolicy];
+            securityPolicy.allowInvalidCertificates = YES;
+            securityPolicy.validatesDomainName = NO;
+            securityPolicy;
+        });
+		httpSessionManager.securityPolicy = securityPolicy;
 	}
 
 	// 3.发送请求
@@ -59,7 +68,7 @@
 	__weak __typeof(&*self) ws = self;
     switch (httpMethod) {
         case HttpMethod_Get: {
-            sessionTask = [sessionManager GET:URL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
+            sessionTask = [httpSessionManager GET:URL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
                 //TODO:下载进度
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 if (successBlock) {
@@ -81,14 +90,14 @@
                     break;
                 }
                 else if ([value isKindOfClass:[NSURL class]]) {
-                    isFile = YES;
+                    isFile = NO;
                     break;
                 }
             }
             
             if (!isFile) {
                 // 参数中不包含NSData类型
-                sessionTask = [sessionManager POST:URL parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
+                sessionTask = [httpSessionManager POST:URL parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
                     //TODO:上传进度
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     if (successBlock) {
@@ -102,7 +111,7 @@
             }
             else {
                 // 参数中包含NSData或者fileURL类型
-                sessionTask = [sessionManager POST:URL parameters:params constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+                sessionTask = [httpSessionManager POST:URL parameters:params constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
                     for (NSString *key in [params allKeys]) {
                         id value = params[key];
                         // 判断参数是否是文件数据
