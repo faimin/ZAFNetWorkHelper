@@ -1,6 +1,6 @@
-[![License MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat)]()&nbsp;
+[![License MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/faimin/ZDAFNetWorkHelper/blob/master/LICENSE)&nbsp;
 [![Language](http://img.shields.io/badge/language-objc-brightgreen.svg?style=flat
-)]()&nbsp;
+)](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/Introduction/Introduction.html)&nbsp;
 
 ## ZDAFNetWork
 
