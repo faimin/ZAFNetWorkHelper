@@ -33,7 +33,7 @@
 	// 1.处理URL
     NSString *URL = [NSString stringWithFormat:@"%@%@", (self.baseURLString ?: @""), URLString];
 	URL = [URL stringByReplacingOccurrencesOfString:@" " withString:@""];
-    if (__IPHONE_OS_VERSION_MIN_REQUIRED == __IPHONE_7_0) {
+    if (__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0) {
         URL = [URL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     }
     else {
@@ -42,6 +42,7 @@
 	// 2.初始化请求管理对象,设置规则
 	AFHTTPSessionManager *httpSessionManager = [AFHTTPSessionManager manager];
 	httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain", @"text/html", nil];
+    httpSessionManager.requestSerializer.timeoutInterval = (self.timeoutInterval > 0) ? self.timeoutInterval : 30;
 
 	if (self.hasCertificate) {
 		///有cer证书时AF会自动从bundle中寻找并加载cer格式的证书

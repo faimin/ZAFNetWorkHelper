@@ -22,6 +22,7 @@ typedef void (^ FailureHandle)(NSError *_Nonnull error);
 
 @property (nonatomic, copy, nullable) NSString *baseURLString;      ///< baseURL
 @property (nonatomic, assign) BOOL hasCertificate;                  ///< 有无证书,default is NO
+@property (nonatomic, assign) NSTimeInterval timeoutInterval;       ///< 超时时间，default is 30s
 
 /**
  *  单例
