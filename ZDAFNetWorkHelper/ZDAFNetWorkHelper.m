@@ -41,7 +41,7 @@
     }
 	// 2.初始化请求管理对象,设置规则
 	AFHTTPSessionManager *httpSessionManager = [AFHTTPSessionManager manager];
-	httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain", @"text/html", nil];
+	httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain", @"text/html", @"application/rss+xml", @"application/soap+xml", @"application/xml", nil];
     httpSessionManager.requestSerializer.timeoutInterval = (self.timeoutInterval > 0) ? self.timeoutInterval : 30;
 
 	if (self.hasCertificate) {
