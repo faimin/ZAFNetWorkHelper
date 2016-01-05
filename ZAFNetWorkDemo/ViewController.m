@@ -46,19 +46,19 @@ NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDeposit
 
 - (void)fetchData
 {
-	__weak __typeof( & *self) weakSelf = self;
+	__weak __typeof(&*self) weakSelf = self;
 
 	[[ZDAFNetWorkHelper shareInstance] requestWithURL:url2
-                                                params:nil
-                                                httpMethod:HttpMethod_Get
-                                                success:^(id responseObject) {
-                                                    __strong __typeof(&*weakSelf) strongSelf = weakSelf;
-                                                    strongSelf.myTextView.text = [strongSelf stringWithJson:responseObject];
-                                                    NSLog(@"\n\n%@\n\n%@", responseObject, [strongSelf stringWithJson:responseObject]);
-                                                }
-                                                failure:^(NSError *error) {
-                                                    NSLog(@"\nerror:%@", error.localizedDescription);
-                                                }];
+                                               params:nil
+                                           httpMethod:HttpMethod_Get
+                                              success:^(id responseObject) {
+                                                __strong __typeof(&*weakSelf) strongSelf = weakSelf;
+                                                strongSelf.myTextView.text = [strongSelf stringWithJson:responseObject];
+                                                NSLog(@"\n\n%@\n\n%@", responseObject, [strongSelf stringWithJson:responseObject]);
+                                              }
+                                              failure:^(NSError *error) {
+                                                NSLog(@"\nerror:%@", error.localizedDescription);
+                                              }];
 }
 
 - (NSString *)stringWithJson:(id)temps //把字典和数组转换成json字符串
