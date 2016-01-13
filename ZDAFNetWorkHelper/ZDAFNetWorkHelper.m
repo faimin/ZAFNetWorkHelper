@@ -34,7 +34,7 @@
     NSString *URL = [NSString stringWithFormat:@"%@%@", (self.baseURLString ?: @""), URLString];
 	URL = [URL stringByReplacingOccurrencesOfString:@" " withString:@""];
     if (__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0) {
-        URL = [URL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+        URL = [URL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];// controlCharacterSet
     }
     else {
         URL = [URL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
