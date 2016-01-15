@@ -7,7 +7,7 @@
 //
 
 #import "ZDAFNetWorkHelper.h"
-
+#import <AFNetworkActivityIndicatorManager.h>
 
 @implementation ZDAFNetWorkHelper
 
@@ -17,6 +17,7 @@
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
 		zdAFHelper = [[ZDAFNetWorkHelper alloc] init];
+        [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
 	});
     
 	return zdAFHelper;
