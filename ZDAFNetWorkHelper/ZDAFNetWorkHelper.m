@@ -11,9 +11,11 @@
 
 @implementation ZDAFNetWorkHelper
 
+#pragma mark - Singleton
+
+static ZDAFNetWorkHelper *zdAFHelper = nil;
 + (instancetype)shareInstance
 {
-	static ZDAFNetWorkHelper *zdAFHelper = nil;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
 		zdAFHelper = [[ZDAFNetWorkHelper alloc] init];
@@ -23,7 +25,22 @@
 	return zdAFHelper;
 }
 
-#pragma mark - GET/POST请求
++ (instancetype)allocWithZone:(struct _NSZone *)zone
+{
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        zdAFHelper = [super allocWithZone:zone];
+    });
+    
+    return zdAFHelper;
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    return zdAFHelper;
+}
+
+#pragma mark - GET && POST请求
 // 返回值:NSURLSessionTask *
 - (NSURLSessionDataTask *)requestWithURL:(NSString *)URLString
                                   params:(id)params
