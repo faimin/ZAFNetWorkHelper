@@ -10,19 +10,19 @@
 #import "AFNetworking.h"
 
 typedef NS_ENUM (NSUInteger, HttpMethod) {
-	HttpMethod_Get,
-	HttpMethod_Post
+	HttpMethod_GET,
+	HttpMethod_POST
 };
 
 //用于回调请求成功或者失败的信息
 typedef void (^ SuccessHandle)(id _Nullable responseObject);
 typedef void (^ FailureHandle)(NSError *_Nonnull error);
 
+///// 所有简单指针对象都被假定为nonnull，因此我们只需要去指定那些nullable的指针即可。
+NS_ASSUME_NONNULL_BEGIN
 @interface ZDAFNetWorkHelper : NSObject
 
 @property (nonatomic, copy, nullable) NSString *baseURLString;      ///< baseURL
-@property (nonatomic, assign) BOOL hasCertificate;                  ///< 有无证书,default is NO
-@property (nonatomic, assign) NSTimeInterval timeoutInterval;       ///< 超时时间，default is 30s
 
 /**
  *  单例
@@ -37,7 +37,6 @@ typedef void (^ FailureHandle)(NSError *_Nonnull error);
  *  @param urlString : 请求地址
  *  @param params : 请求参数
  *  @param httpMethod : GET/POST 请求
- *  @param hasCer : 是否有证书（对于Https请求）
  *  @param successBlock/failureBlock : 回调block
  *
  *  @discussion
@@ -48,4 +47,7 @@ typedef void (^ FailureHandle)(NSError *_Nonnull error);
                                           success:(nullable SuccessHandle)successBlock
                                           failure:(nullable FailureHandle)failureBlock;
 
+- (void)cancelAllOperations;
+
 @end
+NS_ASSUME_NONNULL_END
