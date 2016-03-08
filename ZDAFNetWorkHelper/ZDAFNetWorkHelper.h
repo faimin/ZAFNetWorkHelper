@@ -3,7 +3,7 @@
 //  RequestNetWork
 //
 //  Created by Bourne on 14/11/21.
-//  Copyright (c) 2014年 Fate.D.Bourne. All rights reserved.
+//  Copyright (c) 2014年 Zero.D.Saber. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
