@@ -50,7 +50,7 @@ NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDeposit
 
 	[[ZDAFNetWorkHelper shareInstance] requestWithURL:url2
                                                params:nil
-                                           httpMethod:HttpMethod_Get
+                                           httpMethod:HttpMethod_GET
                                               success:^(id responseObject) {
                                                 __strong __typeof(&*weakSelf) strongSelf = weakSelf;
                                                 strongSelf.myTextView.text = [strongSelf stringWithJson:responseObject];

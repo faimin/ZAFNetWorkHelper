@@ -184,7 +184,7 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
         _httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain", @"text/html", @"application/rss+xml", @"application/soap+xml", @"application/xml", nil];
         _httpSessionManager.requestSerializer.timeoutInterval = 10;
         self.hasCertificate = NO;
-        
+        /// http://www.tuicool.com/articles/6Vfuu2M 验证HTTPS请求证书
         if (self.hasCertificate) {
             ///有cer证书时AF会自动从bundle中寻找并加载cer格式的证书
             AFSecurityPolicy *securityPolicy = ({
