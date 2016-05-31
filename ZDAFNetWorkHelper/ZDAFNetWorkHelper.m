@@ -50,6 +50,7 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
 - (NSURLSessionDataTask *)requestWithURL:(NSString *)URLString
                                   params:(id)params
                               httpMethod:(HttpMethod)httpMethod
+                                progress:(ProgressHandle)progressBlock
                                  success:(SuccessHandle)successBlock
                                  failure:(FailureHandle)failureBlock
 {
@@ -69,7 +70,9 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
     switch (httpMethod) {
         case HttpMethod_GET: {
             sessionTask = [self.httpSessionManager GET:URL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
-                //TODO:下载进度
+                if (progressBlock) {
+                    progressBlock(downloadProgress);
+                }
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 if (successBlock) {
                     successBlock([ws decodeData:responseObject]);
@@ -84,22 +87,24 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
         }
             
         case HttpMethod_POST: {
-            BOOL isFile = NO;
+            BOOL isDataFile = NO;
             for (id value in [params allValues]) {
                 if ([value isKindOfClass:[NSData class]]) {
-                    isFile = YES;
+                    isDataFile = YES;
                     break;
                 }
                 else if ([value isKindOfClass:[NSURL class]]) {
-                    isFile = NO;
+                    isDataFile = NO;
                     break;
                 }
             }
             
-            if (!isFile) {
+            if (!isDataFile) {
                 // 参数中不包含NSData类型
                 sessionTask = [self.httpSessionManager POST:URL parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
-                    //TODO:上传进度
+                    if (progressBlock) {
+                        progressBlock(uploadProgress);
+                    }
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     if (successBlock) {
                         successBlock([ws decodeData:responseObject]);
@@ -111,6 +116,7 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
                 }];
             }
             else {
+                //http://www.tuicool.com/articles/E3aIVra
                 // 参数中包含NSData或者fileURL类型
                 sessionTask = [self.httpSessionManager POST:URL parameters:params constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
                     for (NSString *key in [params allKeys]) {
@@ -133,9 +139,20 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
                                                    mimeType:@"image/jpg"
                                                       error:&error];
                         }
+                        else if ([value isKindOfClass:[NSString class]] && [(NSString *)value hasPrefix:@"http"]) {
+                            NSError *error;
+                            NSString *urlStr = value;
+                            [formData appendPartWithFileURL:[NSURL fileURLWithPath:urlStr]
+                                                       name:urlStr
+                                                   fileName:urlStr
+                                                   mimeType:@"image/jpg"
+                                                      error:&error];
+                        }
                     }
                 } progress:^(NSProgress * _Nonnull uploadProgress) {
-                    //TODO:上传进度
+                    if (progressBlock) {
+                        progressBlock(uploadProgress);
+                    }
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     if (successBlock) {
                         successBlock([ws decodeData:responseObject]);
@@ -158,6 +175,46 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
     return sessionTask;
 }
 
+#pragma mark - Upload
+
+- (void)uploadDataWithURLString:(NSString *)urlString dataDictionary:(NSDictionary *)dataDic completion:(void(^)(id responseObject))completionBlock
+{
+//    NSError * __autoreleasing error;
+//    NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:urlString parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+//        NSData* imageData = UIImageJPEGRepresentation(image, 1.0);
+//        [formData appendPartWithFileData:imageData name:@"file" fileName:@"someFileName" mimeType:@"multipart/form-data"];
+//    } error:&error];
+    
+    NSUInteger dataCount = dataDic.count;
+    NSMutableArray *resultArr = [[NSMutableArray alloc] initWithCapacity:dataCount];
+    for (NSInteger i = 0; i < dataCount; i++) {
+        [resultArr addObject:[NSNull null]];
+    }
+    
+    dispatch_group_t zdGroup = dispatch_group_create();
+    dispatch_semaphore_t zdSemaphore = dispatch_semaphore_create(1);
+    
+    for (NSInteger i = 0; i < dataCount; i++) {
+        dispatch_group_enter(zdGroup);
+        [self requestWithURL:urlString params:dataDic httpMethod:HttpMethod_POST progress:^(NSProgress * _Nonnull progress) {
+            //do nothing
+        } success:^(id  _Nullable responseObject) {
+            dispatch_semaphore_wait(zdSemaphore, DISPATCH_TIME_FOREVER);
+            resultArr[i] = responseObject;
+            dispatch_semaphore_signal(zdSemaphore);
+            
+            dispatch_group_leave(zdGroup);
+        } failure:^(NSError * _Nonnull error) {
+            dispatch_group_leave(zdGroup);
+        }];
+    }
+    
+    dispatch_group_notify(zdGroup, dispatch_get_main_queue(), ^{
+        completionBlock(resultArr);
+    });
+}
+
+#pragma mark - Private Method
 ///解析数据
 - (id)decodeData:(id)data
 {

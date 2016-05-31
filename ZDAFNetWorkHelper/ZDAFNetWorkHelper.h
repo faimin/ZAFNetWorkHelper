@@ -11,12 +11,13 @@
 
 typedef NS_ENUM (NSUInteger, HttpMethod) {
 	HttpMethod_GET,
-	HttpMethod_POST
+	HttpMethod_POST,
 };
 
 //用于回调请求成功或者失败的信息
-typedef void (^ SuccessHandle)(id _Nullable responseObject);
-typedef void (^ FailureHandle)(NSError *_Nonnull error);
+typedef void(^SuccessHandle)(id _Nullable responseObject);
+typedef void(^FailureHandle)(NSError *_Nonnull error);
+typedef void(^ProgressHandle)(NSProgress *_Nonnull progress);
 
 ///// 所有简单指针对象都被假定为nonnull，因此我们只需要去指定那些nullable的指针即可。
 NS_ASSUME_NONNULL_BEGIN
@@ -41,13 +42,19 @@ NS_ASSUME_NONNULL_BEGIN
  *
  *  @discussion
  */
-- (nullable NSURLSessionDataTask *)requestWithURL:(nonnull NSString *)URLString
+- (nullable NSURLSessionDataTask *)requestWithURL:(NSString *)URLString
                                            params:(nullable id)params
                                        httpMethod:(HttpMethod)httpMethod
+                                         progress:(ProgressHandle)progressBlock
                                           success:(nullable SuccessHandle)successBlock
                                           failure:(nullable FailureHandle)failureBlock;
 
 - (void)cancelAllOperations;
+
+/// 异步上传,顺序返回
+- (void)uploadDataWithURLString:(NSString *)urlString
+                 dataDictionary:(NSDictionary *)dataDic
+                     completion:(void(^)(id responseObject))completionBlock;
 
 @end
 NS_ASSUME_NONNULL_END
