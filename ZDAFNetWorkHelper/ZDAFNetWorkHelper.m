@@ -66,7 +66,7 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
 	
 	// 3.发送请求
 	NSURLSessionDataTask *sessionTask = nil;
-	__weak __typeof(&*self) ws = self;
+	__weak __typeof(&*self) weakSelf = self;
     switch (httpMethod) {
         case HttpMethod_GET: {
             sessionTask = [self.httpSessionManager GET:URL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
@@ -74,8 +74,9 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
                     progressBlock(downloadProgress);
                 }
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                __strong __typeof(&*weakSelf) strongSelf = weakSelf;
                 if (successBlock) {
-                    successBlock([ws decodeData:responseObject]);
+                    successBlock([strongSelf decodeData:responseObject]);
                 }
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 if (failureBlock) {
@@ -106,8 +107,9 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
                         progressBlock(uploadProgress);
                     }
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                    __strong __typeof(&*weakSelf) strongSelf = weakSelf;
                     if (successBlock) {
-                        successBlock([ws decodeData:responseObject]);
+                        successBlock([strongSelf decodeData:responseObject]);
                     }
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                     if (failureBlock) {
@@ -154,8 +156,9 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
                         progressBlock(uploadProgress);
                     }
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                    __strong __typeof(&*weakSelf) strongSelf = weakSelf;
                     if (successBlock) {
-                        successBlock([ws decodeData:responseObject]);
+                        successBlock([strongSelf decodeData:responseObject]);
                     }
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                     if (failureBlock) {
