@@ -14,11 +14,9 @@
 
 @end
 
-//NS_ASSUME_NONNULL_BEGIN
 NSString *const url1 = @"https://daka.facenano.com/checkin/v1/app_binding?phone_number=18700000001&app_version_code=2&device=mobile_ios&company_tag=iPhone-demo&phone_imei=6D56F277-0AAA-4F32-AD01-6C55AEE75964&verification_code=3216";
 NSString *const url2 = @"http://api.douban.com/v2/movie/top250";
 NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDepositShowView&fromPaltform=ds_ios&paymentId=1014&token=9047a07dc6153188b690c8c740cb84f1";
-//NS_ASSUME_NONNULL_END
 
 @implementation ViewController
 
@@ -47,7 +45,7 @@ NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDeposit
 - (void)fetchData
 {
 	__weak __typeof(&*self) weakSelf = self;
-    [[ZDAFNetWorkHelper shareInstance] requestWithURL:url2 params:nil httpMethod:HttpMethod_GET progress:^(NSProgress * _Nonnull progress) {
+    [[ZDNetworkHelper shareInstance] requestWithURL:url2 params:nil httpMethod:HttpMethod_GET progress:^(NSProgress * _Nonnull progress) {
         NSLog(@"完成进度: %lld", progress.completedUnitCount/progress.totalUnitCount);
     } success:^(id  _Nullable responseObject) {
         __strong __typeof(&*weakSelf) strongSelf = weakSelf;

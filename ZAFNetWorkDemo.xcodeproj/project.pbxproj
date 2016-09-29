@@ -15,7 +15,7 @@
 		1819F19C1A411BE900A2EEA5 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1819F19A1A411BE900A2EEA5 /* LaunchScreen.xib */; };
 		1819F1A81A411BEA00A2EEA5 /* ZAFNetWorkDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1819F1A71A411BEA00A2EEA5 /* ZAFNetWorkDemoTests.m */; };
 		8C58D1DE7153408A371D4D5D /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D36E1DDC357A895DCCF48B7 /* libPods.a */; };
-		BC8A8F901BFC682B00EBA9B7 /* ZDAFNetWorkHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BC8A8F8F1BFC682B00EBA9B7 /* ZDAFNetWorkHelper.m */; };
+		BC8A8F901BFC682B00EBA9B7 /* ZDNetworkHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BC8A8F8F1BFC682B00EBA9B7 /* ZDNetworkHelper.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,8 +44,8 @@
 		1819F1A71A411BEA00A2EEA5 /* ZAFNetWorkDemoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZAFNetWorkDemoTests.m; sourceTree = "<group>"; };
 		1819F1B91A413CC400A2EEA5 /* Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Prefix.pch; sourceTree = "<group>"; };
 		2D36E1DDC357A895DCCF48B7 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		BC8A8F8E1BFC682B00EBA9B7 /* ZDAFNetWorkHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZDAFNetWorkHelper.h; sourceTree = "<group>"; };
-		BC8A8F8F1BFC682B00EBA9B7 /* ZDAFNetWorkHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZDAFNetWorkHelper.m; sourceTree = "<group>"; };
+		BC8A8F8E1BFC682B00EBA9B7 /* ZDNetworkHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZDNetworkHelper.h; sourceTree = "<group>"; };
+		BC8A8F8F1BFC682B00EBA9B7 /* ZDNetworkHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZDNetworkHelper.m; sourceTree = "<group>"; };
 		D51DB20E333A107C48E457FD /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		F0C238172BAD9946C76DD5E2 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -152,8 +152,8 @@
 		BC8A8F8D1BFC682B00EBA9B7 /* ZDAFNetWorkHelper */ = {
 			isa = PBXGroup;
 			children = (
-				BC8A8F8E1BFC682B00EBA9B7 /* ZDAFNetWorkHelper.h */,
-				BC8A8F8F1BFC682B00EBA9B7 /* ZDAFNetWorkHelper.m */,
+				BC8A8F8E1BFC682B00EBA9B7 /* ZDNetworkHelper.h */,
+				BC8A8F8F1BFC682B00EBA9B7 /* ZDNetworkHelper.m */,
 			);
 			path = ZDAFNetWorkHelper;
 			sourceTree = "<group>";
@@ -209,6 +209,7 @@
 				TargetAttributes = {
 					1819F1871A411BE900A2EEA5 = {
 						CreatedOnToolsVersion = 6.1.1;
+						DevelopmentTeam = 9RX2YUH426;
 					};
 					1819F1A01A411BE900A2EEA5 = {
 						CreatedOnToolsVersion = 6.1.1;
@@ -293,7 +294,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BC8A8F901BFC682B00EBA9B7 /* ZDAFNetWorkHelper.m in Sources */,
+				BC8A8F901BFC682B00EBA9B7 /* ZDNetworkHelper.m in Sources */,
 				1819F1941A411BE900A2EEA5 /* ViewController.m in Sources */,
 				1819F1911A411BE900A2EEA5 /* AppDelegate.m in Sources */,
 				1819F18E1A411BE900A2EEA5 /* main.m in Sources */,
@@ -420,6 +421,7 @@
 			baseConfigurationReference = D51DB20E333A107C48E457FD /* Pods.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 9RX2YUH426;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/ZAFNetWorkDemo/Prefix.pch";
 				INFOPLIST_FILE = ZAFNetWorkDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
@@ -434,6 +436,7 @@
 			baseConfigurationReference = F0C238172BAD9946C76DD5E2 /* Pods.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 9RX2YUH426;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/ZAFNetWorkDemo/Prefix.pch";
 				INFOPLIST_FILE = ZAFNetWorkDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;

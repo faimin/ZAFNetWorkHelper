@@ -2,61 +2,57 @@
 // ZSNetWorkService.m
 // RequestNetWork
 //
-// Created by Bourne on 14/11/21.
+// Created by Zero on 14/11/21.
 // Copyright (c) 2014年 Zero.D.Saber. All rights reserved.
 //
 
-#import "ZDAFNetWorkHelper.h"
+#import "ZDNetworkHelper.h"
 #import "AFNetworkActivityIndicatorManager.h"
 
-@interface ZDAFNetWorkHelper ()
+@interface ZDNetworkHelper ()
 @property (nonatomic, strong) AFHTTPSessionManager *httpSessionManager;
 @property (nonatomic, assign) BOOL hasCertificate;  ///< 有无证书，default is NO
 @end
 
-@implementation ZDAFNetWorkHelper
+@implementation ZDNetworkHelper
 
 #pragma mark - Singleton
 
-static ZDAFNetWorkHelper *zdAFHelper = nil;
-+ (instancetype)shareInstance
-{
+static ZDNetworkHelper *zdNetworkHelper = nil;
++ (instancetype)shareInstance {
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		zdAFHelper = [[ZDAFNetWorkHelper alloc] init];
+		zdNetworkHelper = [[ZDNetworkHelper alloc] init];
         [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
 	});
     
-	return zdAFHelper;
+	return zdNetworkHelper;
 }
 
-+ (instancetype)allocWithZone:(struct _NSZone *)zone
-{
++ (instancetype)allocWithZone:(struct _NSZone *)zone {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        zdAFHelper = [super allocWithZone:zone];
+        zdNetworkHelper = [super allocWithZone:zone];
     });
     
-    return zdAFHelper;
+    return zdNetworkHelper;
 }
 
-- (id)copyWithZone:(NSZone *)zone
-{
-    return zdAFHelper;
+- (id)copyWithZone:(NSZone *)zone {
+    return zdNetworkHelper;
 }
 
 #pragma mark - GET && POST请求
-// 返回值:NSURLSessionTask *
+
 - (NSURLSessionDataTask *)requestWithURL:(NSString *)URLString
                                   params:(id)params
                               httpMethod:(HttpMethod)httpMethod
                                 progress:(ProgressHandle)progressBlock
                                  success:(SuccessHandle)successBlock
-                                 failure:(FailureHandle)failureBlock
-{
+                                 failure:(FailureHandle)failureBlock {
 	// 1.处理URL
     NSString *URL = [[NSString stringWithFormat:@"%@%@", (self.baseURLString ? : @""), URLString] stringByReplacingOccurrencesOfString:@" " withString:@""];
-    if (__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0) {
+    if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_8_0) {
         URL = [URL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];// controlCharacterSet
     }
     else {
@@ -133,7 +129,7 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
                                                     mimeType:@"image/jpg"];
                         }
                         else if ([value isKindOfClass:[NSURL class]]) {
-                            NSError *error;
+                            NSError __autoreleasing *error;
                             NSURL *localFileURL = value;
                             [formData appendPartWithFileURL:localFileURL
                                                        name:localFileURL.absoluteString
@@ -180,8 +176,9 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
 
 #pragma mark - Upload
 
-- (void)uploadDataWithURLString:(NSString *)urlString dataDictionary:(NSDictionary *)dataDic completion:(void(^)(id responseObject))completionBlock
-{
+- (void)uploadDataWithURLString:(NSString *)urlString
+                 dataDictionary:(NSDictionary *)dataDic
+                     completion:(void(^)(id responseObject))completionBlock {
 //    NSError * __autoreleasing error;
 //    NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:urlString parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
 //        NSData* imageData = UIImageJPEGRepresentation(image, 1.0);
@@ -217,33 +214,68 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
     });
 }
 
+//- (NSURLSessionTask *)uploadFileWithUrl:(NSString *)url
+
+
 #pragma mark - Private Method
+- (void)detectNetworkStatus {
+    AFNetworkReachabilityManager *reachabilityManager = [AFNetworkReachabilityManager sharedManager];
+    [reachabilityManager startMonitoring];
+    [reachabilityManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
+        switch (status) {
+                case AFNetworkReachabilityStatusUnknown:
+                self.networkStatus = AFNetworkReachabilityStatusNotReachable;
+                break;
+                
+                case AFNetworkReachabilityStatusNotReachable:
+                self.networkStatus = AFNetworkReachabilityStatusNotReachable;
+                break;
+                
+                case AFNetworkReachabilityStatusReachableViaWWAN:
+                self.networkStatus = AFNetworkReachabilityStatusReachableViaWWAN;
+                break;
+                
+                case AFNetworkReachabilityStatusReachableViaWiFi:
+                self.networkStatus = AFNetworkReachabilityStatusReachableViaWiFi;
+                break;
+        }
+    }];
+}
+
 ///解析数据
-- (id)decodeData:(id)data
-{
-    if (!data) {
-        return nil;
-    }
-	NSError *error;
+- (id)decodeData:(id)data {
+    if (!data) return nil;
+    
+	NSError __autoreleasing *error;
 	return [data isKindOfClass:[NSData class]] ? [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&error] : data;
 }
 
 #pragma mark - Operations
 
-- (void)cancelAllOperations
-{
-    [[ZDAFNetWorkHelper shareInstance].httpSessionManager.operationQueue cancelAllOperations];
+- (void)cancelAllOperations {
+    [[ZDNetworkHelper shareInstance].httpSessionManager.operationQueue cancelAllOperations];
 }
 
 #pragma mark - Property
 
-- (AFHTTPSessionManager *)httpSessionManager
-{
+- (AFHTTPSessionManager *)httpSessionManager {
     if (!_httpSessionManager) {
         _httpSessionManager = [AFHTTPSessionManager manager];
-        _httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain", @"text/html", @"application/rss+xml", @"application/soap+xml", @"application/xml", nil];
-        _httpSessionManager.requestSerializer.timeoutInterval = 10;
-        self.hasCertificate = NO;
+        _httpSessionManager.requestSerializer.timeoutInterval = timeoutInterval;
+        
+        _httpSessionManager.requestSerializer = [AFHTTPRequestSerializer serializer];
+        _httpSessionManager.responseSerializer = [AFHTTPResponseSerializer serializer];
+        _httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:
+                                                                         @"application/json",
+                                                                         @"text/json",
+                                                                         @"text/javascript",
+                                                                         @"text/plain",
+                                                                         @"text/html",
+                                                                         @"application/rss+xml",
+                                                                         @"application/soap+xml",
+                                                                         @"application/xml",
+                                                                         nil];
+        
         /// http://www.tuicool.com/articles/6Vfuu2M 验证HTTPS请求证书
         if (self.hasCertificate) {
             ///有cer证书时AF会自动从bundle中寻找并加载cer格式的证书
@@ -264,7 +296,11 @@ static ZDAFNetWorkHelper *zdAFHelper = nil;
             });
             _httpSessionManager.securityPolicy = securityPolicy;
         }
+        
+        // 监测网络
+        [self detectNetworkStatus];
     }
+    
     return _httpSessionManager;
 }
 
