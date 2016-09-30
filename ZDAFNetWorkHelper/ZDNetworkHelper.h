@@ -26,6 +26,7 @@ typedef NS_ENUM(NSInteger, ZDNetworkStatus) {
 typedef void(^SuccessHandle)(id _Nullable responseObject);
 typedef void(^FailureHandle)(NSError *_Nonnull error);
 typedef void(^ProgressHandle)(NSProgress *_Nonnull progress);
+typedef void(^CachedHandle)(id _Nullable cachedResponse);
 
 
 NS_ASSUME_NONNULL_BEGIN
@@ -56,6 +57,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)uploadDataWithURLString:(NSString *)urlString
                  dataDictionary:(NSDictionary *)dataDic
                      completion:(void(^)(NSArray *result))completionBlock;
+
+- (void)cancelTaskWithURL:(NSString *)urlString;
+
+- (void)cancelAllTasks;
 
 
 @end
