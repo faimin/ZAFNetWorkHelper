@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "AE8DD553729EC346F637E3709DC9EDD091D8E48C",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "AE8DD553729EC346F637E3709DC9EDD091D8E48C" : 9223372036854775807,
+    "E329E12008D67B0E310038A11A5272110E31A97F" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "D25474BD-2B21-4757-AB34-B112459226BC",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "AE8DD553729EC346F637E3709DC9EDD091D8E48C" : "ZDAFNetWorkHelper\/",
+    "E329E12008D67B0E310038A11A5272110E31A97F" : ".."
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "Demo",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Demo\/Demo.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/faimin\/ZDAFNetWorkHelper.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "AE8DD553729EC346F637E3709DC9EDD091D8E48C"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/faimin\/LibClass.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "E329E12008D67B0E310038A11A5272110E31A97F"
+    }
+  ]
+}
