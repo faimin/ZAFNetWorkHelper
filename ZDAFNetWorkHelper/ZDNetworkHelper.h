@@ -16,10 +16,10 @@ typedef NS_ENUM (NSUInteger, HttpMethod) {
 	HttpMethod_POST,
 };
 typedef NS_ENUM(NSInteger, ZDNetworkStatus) {
-    ZDNetworkStatusUnknown          = -1,
-    ZDNetworkStatusNotReachable     = 0,
-    ZDNetworkStatusWWAN             = 1,
-    ZDNetworkStatusWiFi             = 2,
+    ZDNetworkStatusUnknown          = -1,   ///< 未知
+    ZDNetworkStatusNotReachable     = 0,    ///< 无连接
+    ZDNetworkStatusWWAN             = 1,    ///< 移动网络
+    ZDNetworkStatusWiFi             = 2,    ///< WiFi
 };
 
 /// 用于回调请求成功或者失败的信息
@@ -32,12 +32,11 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ZDNetworkHelper : NSObject
 
 @property (nonatomic, copy, nullable) NSString *baseURLString;      ///< baseURL
-@property (nonatomic, assign) ZDNetworkStatus networkStatus;   ///< 网络状态
+@property (nonatomic, assign) ZDNetworkStatus networkStatus;        ///< 网络状态
 
 /// @brief 单例
 /// @return 实例化后的selfClass
 + (instancetype)shareInstance;
-
 
 /// @abstract GET && POST请求
 ///
@@ -53,12 +52,11 @@ NS_ASSUME_NONNULL_BEGIN
                                           success:(nullable SuccessHandle)successBlock
                                           failure:(nullable FailureHandle)failureBlock;
 
-- (void)cancelAllOperations;
-
-/// 异步上传,顺序返回
+/// 异步上传,结果数组中的url顺序是按添加图片的顺序
 - (void)uploadDataWithURLString:(NSString *)urlString
                  dataDictionary:(NSDictionary *)dataDic
-                     completion:(void(^)(id responseObject))completionBlock;
+                     completion:(void(^)(NSArray *result))completionBlock;
+
 
 @end
 NS_ASSUME_NONNULL_END

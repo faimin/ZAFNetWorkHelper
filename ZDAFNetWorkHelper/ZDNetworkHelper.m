@@ -4,15 +4,33 @@
 //
 // Created by Zero on 14/11/21.
 // Copyright (c) 2014年 Zero.D.Saber. All rights reserved.
-//
+// refer:https://github.com/jkpang/PPNetworkHelper && https://github.com/cbangchen/CBNetworking
+
+@interface ZDURLCache : NSURLCache
+
+/// 单例
++ (instancetype)urlCache;
+
+/// 获取缓存
+- (NSCachedURLResponse *)cachedResponseForRequest:(NSURLRequest *)request;
+
+/// 缓存请求
+- (void)storeCachedResponse:(NSURLResponse *)urlResponse
+               responseObjc:(id)responseObjc
+                 forRequest:(NSURLRequest *)request;
+@end
+
+#pragma mark - 
 
 #import "ZDNetworkHelper.h"
 #import "AFNetworkActivityIndicatorManager.h"
 
 @interface ZDNetworkHelper ()
 @property (nonatomic, strong) AFHTTPSessionManager *httpSessionManager;
-@property (nonatomic, assign) BOOL hasCertificate;  ///< 有无证书，default is NO
+@property (nonatomic, assign) BOOL hasCertificate;  ///< 有无证书
 @end
+
+static ZDNetworkStatus _networkStatus;
 
 @implementation ZDNetworkHelper
 
@@ -58,26 +76,19 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     else {
         URL = [URL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     }
-	// 2.初始化请求管理对象，设置规则
 	
-	// 3.发送请求
+	// 2.发送请求
 	NSURLSessionDataTask *sessionTask = nil;
 	__weak __typeof(&*self) weakSelf = self;
     switch (httpMethod) {
         case HttpMethod_GET: {
             sessionTask = [self.httpSessionManager GET:URL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
-                if (progressBlock) {
-                    progressBlock(downloadProgress);
-                }
+                progressBlock ? progressBlock(downloadProgress) : nil;
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 __strong __typeof(&*weakSelf) strongSelf = weakSelf;
-                if (successBlock) {
-                    successBlock([strongSelf decodeData:responseObject]);
-                }
+                successBlock ? successBlock([strongSelf decodeData:responseObject]) : nil;
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                if (failureBlock) {
-                    failureBlock(error);
-                }
+                failureBlock ? failureBlock(error) : nil;
             }];
             
             break;
@@ -99,18 +110,12 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             if (!isDataFile) {
                 // 参数中不包含NSData类型
                 sessionTask = [self.httpSessionManager POST:URL parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
-                    if (progressBlock) {
-                        progressBlock(uploadProgress);
-                    }
+                    progressBlock ? progressBlock(uploadProgress) : nil;
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     __strong __typeof(&*weakSelf) strongSelf = weakSelf;
-                    if (successBlock) {
-                        successBlock([strongSelf decodeData:responseObject]);
-                    }
+                    successBlock ? successBlock([strongSelf decodeData:responseObject]) : nil;
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    if (failureBlock) {
-                        failureBlock(error);
-                    }
+                    failureBlock ? failureBlock(error) : nil;
                 }];
             }
             else {
@@ -126,40 +131,34 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                             [formData appendPartWithFileData:value
                                                         name:key
                                                     fileName:[NSString stringWithFormat:@"%@.jpg", key]
-                                                    mimeType:@"image/jpg"];
+                                                    mimeType:@"image/jpeg"];
                         }
                         else if ([value isKindOfClass:[NSURL class]]) {
-                            NSError __autoreleasing *error;
+                            NSError * __autoreleasing error;
                             NSURL *localFileURL = value;
                             [formData appendPartWithFileURL:localFileURL
                                                        name:localFileURL.absoluteString
                                                    fileName:localFileURL.absoluteString
-                                                   mimeType:@"image/jpg"
+                                                   mimeType:@"image/jpeg"
                                                       error:&error];
                         }
                         else if ([value isKindOfClass:[NSString class]] && [(NSString *)value hasPrefix:@"http"]) {
-                            NSError *error;
+                            NSError * __autoreleasing error;
                             NSString *urlStr = value;
                             [formData appendPartWithFileURL:[NSURL fileURLWithPath:urlStr]
                                                        name:urlStr
                                                    fileName:urlStr
-                                                   mimeType:@"image/jpg"
+                                                   mimeType:@"image/jpeg"
                                                       error:&error];
                         }
                     }
                 } progress:^(NSProgress * _Nonnull uploadProgress) {
-                    if (progressBlock) {
-                        progressBlock(uploadProgress);
-                    }
+                    progressBlock ? progressBlock(uploadProgress) : nil;
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     __strong __typeof(&*weakSelf) strongSelf = weakSelf;
-                    if (successBlock) {
-                        successBlock([strongSelf decodeData:responseObject]);
-                    }
+                    successBlock ? successBlock([strongSelf decodeData:responseObject]) : nil;
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    if (failureBlock) {
-                        failureBlock(error);
-                    }
+                    failureBlock ? failureBlock(error) : nil;
                 }];
             }
 
@@ -178,10 +177,10 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 
 - (void)uploadDataWithURLString:(NSString *)urlString
                  dataDictionary:(NSDictionary *)dataDic
-                     completion:(void(^)(id responseObject))completionBlock {
+                     completion:(void(^)(NSArray *result))completionBlock {
 //    NSError * __autoreleasing error;
 //    NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:urlString parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-//        NSData* imageData = UIImageJPEGRepresentation(image, 1.0);
+//        NSData* imageData = UIImageJPEGRepresentation(image, 0.9);
 //        [formData appendPartWithFileData:imageData name:@"file" fileName:@"someFileName" mimeType:@"multipart/form-data"];
 //    } error:&error];
     
@@ -202,7 +201,6 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             dispatch_semaphore_wait(zdSemaphore, DISPATCH_TIME_FOREVER);
             resultArr[i] = responseObject;
             dispatch_semaphore_signal(zdSemaphore);
-            
             dispatch_group_leave(zdGroup);
         } failure:^(NSError * _Nonnull error) {
             dispatch_group_leave(zdGroup);
@@ -218,25 +216,25 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 
 
 #pragma mark - Private Method
-- (void)detectNetworkStatus {
+- (void)detectNetworkStatus:(void(^)(ZDNetworkStatus status))networkStatus {
     AFNetworkReachabilityManager *reachabilityManager = [AFNetworkReachabilityManager sharedManager];
     [reachabilityManager startMonitoring];
     [reachabilityManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
         switch (status) {
                 case AFNetworkReachabilityStatusUnknown:
-                self.networkStatus = AFNetworkReachabilityStatusNotReachable;
+                networkStatus(ZDNetworkStatusUnknown);
                 break;
                 
                 case AFNetworkReachabilityStatusNotReachable:
-                self.networkStatus = AFNetworkReachabilityStatusNotReachable;
+                networkStatus(ZDNetworkStatusNotReachable);
                 break;
                 
                 case AFNetworkReachabilityStatusReachableViaWWAN:
-                self.networkStatus = AFNetworkReachabilityStatusReachableViaWWAN;
+                networkStatus(ZDNetworkStatusWWAN);
                 break;
                 
                 case AFNetworkReachabilityStatusReachableViaWiFi:
-                self.networkStatus = AFNetworkReachabilityStatusReachableViaWiFi;
+                networkStatus(ZDNetworkStatusWiFi);
                 break;
         }
     }];
@@ -246,8 +244,15 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 - (id)decodeData:(id)data {
     if (!data) return nil;
     
-	NSError __autoreleasing *error;
+	NSError * __autoreleasing error;
 	return [data isKindOfClass:[NSData class]] ? [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&error] : data;
+}
+
+//MARK:缓存
+- (void)cacheResponse:(id)response
+              request:(NSURLRequest *)request
+               params:(NSDictionary *)param {
+    
 }
 
 #pragma mark - Operations
@@ -266,11 +271,12 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
         _httpSessionManager.requestSerializer = [AFHTTPRequestSerializer serializer];
         _httpSessionManager.responseSerializer = [AFHTTPResponseSerializer serializer];
         _httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:
-                                                                         @"application/json",
                                                                          @"text/json",
-                                                                         @"text/javascript",
+                                                                         @"text/xml",
                                                                          @"text/plain",
                                                                          @"text/html",
+                                                                         @"text/javascript",
+                                                                         @"application/json",
                                                                          @"application/rss+xml",
                                                                          @"application/soap+xml",
                                                                          @"application/xml",
@@ -287,7 +293,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             _httpSessionManager.securityPolicy = securityPolicy;
         }
         else {
-            ///无cer证书的情况,忽略证书,实现Https请求
+            ///无cer证书的情况,忽略证书,实现https请求
             AFSecurityPolicy *securityPolicy = ({
                 AFSecurityPolicy *securityPolicy = [AFSecurityPolicy defaultPolicy];
                 securityPolicy.allowInvalidCertificates = YES;
@@ -298,11 +304,17 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
         }
         
         // 监测网络
-        [self detectNetworkStatus];
+        __weak __typeof(&*self)weakSelf = self;
+        [self detectNetworkStatus:^(ZDNetworkStatus status) {
+            __strong __typeof(&*weakSelf)strongSelf = weakSelf;
+            strongSelf.networkStatus = status;
+        }];
     }
     
     return _httpSessionManager;
 }
+
+
 
 @end
 
@@ -328,4 +340,64 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
  *  默认情况下,提交的是二进制数据请求,返回Json格式的数据
  */
 // sessionManager.responseSerializer = [AFHTTPResponseSerializer serializer];
+
+
+#pragma mark - ZDCache
+#pragma mark -
+
+#define ZD_M (1024 * 1024)
+#define ZD_MAX_MEMORY_CACHE_SIZE (10 * ZD_M)
+#define ZD_MAX_DISK_CACHE_SIZE (30 * ZD_M)
+static NSString * const ZDURLCachedExpirationKey = @"ZDURLCachedExpirationDateKey";
+static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
+
+@implementation ZDURLCache
+
++ (instancetype)urlCache {
+    static ZDURLCache *_cache = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _cache = [[ZDURLCache alloc] initWithMemoryCapacity:ZD_MAX_MEMORY_CACHE_SIZE diskCapacity:ZD_MAX_DISK_CACHE_SIZE diskPath:nil];
+    });
+    return _cache;
+}
+
+/// 取出缓存
+- (NSCachedURLResponse *)cachedResponseForRequest:(NSURLRequest *)request {
+    NSCachedURLResponse *cachedResponse = [super cachedResponseForRequest:request];
+    if (cachedResponse) {
+        NSDate *cacheDate = cachedResponse.userInfo[ZDURLCachedExpirationKey];
+        NSDate *cacheExpirationDate = [cacheDate dateByAddingTimeInterval:ZDURLCacheExpirationInterval];
+        // 过期之后移除
+        if ([cacheExpirationDate compare:[NSDate date]] == NSOrderedAscending) {
+            [self removeCachedResponseForRequest:request];
+            return nil;
+        }
+    }
+    
+    NSError * __autoreleasing error = nil;
+    id responseObjc = [NSJSONSerialization JSONObjectWithData:cachedResponse.data options:NSJSONReadingAllowFragments error:&error];
+    
+    return responseObjc;
+}
+
+/// 缓存请求
+- (void)storeCachedResponse:(NSURLResponse *)urlResponse
+               responseObjc:(id)responseObjc
+                 forRequest:(NSURLRequest *)request {
+    if (!responseObjc) return;
+    
+    NSError * __autoreleasing error = nil;
+    NSData *data = [NSJSONSerialization dataWithJSONObject:responseObjc options:NSJSONWritingPrettyPrinted error:&error];
+    
+    NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
+    userInfo[ZDURLCachedExpirationKey] = [NSDate date];
+    
+    NSCachedURLResponse *newCachedResponse = [[NSCachedURLResponse alloc] initWithResponse:urlResponse data:data userInfo:userInfo storagePolicy:NSURLCacheStorageAllowed];
+    
+    [super storeCachedResponse:newCachedResponse forRequest:request];
+}
+
+@end
+
 

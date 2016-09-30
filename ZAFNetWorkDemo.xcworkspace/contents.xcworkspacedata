@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:ZAFNetWorkDemo.xcodeproj">
+      location = "group:/Users/fuxianchao/MyGit/ZDAFNetWorkHelper/ZDNetWorkDemo.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:Pods/Pods.xcodeproj">
