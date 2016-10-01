@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		049FBD05C30E2358D7147BFD /* Pods_Demo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6AE348A7D95AD4A87207CA0A /* Pods_Demo.framework */; };
+		05ABF87B1DA000A1002478A9 /* ZDNetworkHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 05ABF87A1DA000A1002478A9 /* ZDNetworkHelper.m */; };
 		05D58C761D9EA749006E6391 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 05D58C751D9EA749006E6391 /* main.m */; };
 		05D58C791D9EA749006E6391 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 05D58C781D9EA749006E6391 /* AppDelegate.m */; };
 		05D58C7C1D9EA749006E6391 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05D58C7B1D9EA749006E6391 /* ViewController.m */; };
@@ -16,7 +17,6 @@
 		05D58C841D9EA749006E6391 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 05D58C821D9EA749006E6391 /* LaunchScreen.storyboard */; };
 		05D58C8F1D9EA749006E6391 /* DemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 05D58C8E1D9EA749006E6391 /* DemoTests.m */; };
 		05D58C9A1D9EA749006E6391 /* DemoUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 05D58C991D9EA749006E6391 /* DemoUITests.m */; };
-		05D58CAA1D9EA79E006E6391 /* ZDNetworkHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 05D58CA91D9EA79E006E6391 /* ZDNetworkHelper.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +37,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		05ABF8791DA000A1002478A9 /* ZDNetworkHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZDNetworkHelper.h; sourceTree = "<group>"; };
+		05ABF87A1DA000A1002478A9 /* ZDNetworkHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZDNetworkHelper.m; sourceTree = "<group>"; };
 		05D58C711D9EA749006E6391 /* Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05D58C751D9EA749006E6391 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		05D58C771D9EA749006E6391 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -53,8 +55,6 @@
 		05D58C951D9EA749006E6391 /* DemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		05D58C991D9EA749006E6391 /* DemoUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoUITests.m; sourceTree = "<group>"; };
 		05D58C9B1D9EA749006E6391 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		05D58CA81D9EA79E006E6391 /* ZDNetworkHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZDNetworkHelper.h; sourceTree = "<group>"; };
-		05D58CA91D9EA79E006E6391 /* ZDNetworkHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZDNetworkHelper.m; sourceTree = "<group>"; };
 		1FF1CF9733C60BF3C555C888 /* Pods-Demo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Demo.release.xcconfig"; path = "Pods/Target Support Files/Pods-Demo/Pods-Demo.release.xcconfig"; sourceTree = "<group>"; };
 		6AE348A7D95AD4A87207CA0A /* Pods_Demo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Demo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B71EF48426C3F5B35ED3764 /* Pods-Demo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Demo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Demo/Pods-Demo.debug.xcconfig"; sourceTree = "<group>"; };
@@ -86,10 +86,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		05ABF8781DA000A1002478A9 /* ZDNetWorkHelper */ = {
+			isa = PBXGroup;
+			children = (
+				05ABF8791DA000A1002478A9 /* ZDNetworkHelper.h */,
+				05ABF87A1DA000A1002478A9 /* ZDNetworkHelper.m */,
+			);
+			name = ZDNetWorkHelper;
+			path = ../ZDNetWorkHelper;
+			sourceTree = "<group>";
+		};
 		05D58C681D9EA749006E6391 = {
 			isa = PBXGroup;
 			children = (
-				05D58CA71D9EA79E006E6391 /* ZDNetWorkHelper */,
+				05ABF8781DA000A1002478A9 /* ZDNetWorkHelper */,
 				05D58C731D9EA749006E6391 /* Demo */,
 				05D58C8D1D9EA749006E6391 /* DemoTests */,
 				05D58C981D9EA749006E6391 /* DemoUITests */,
@@ -149,15 +159,6 @@
 				05D58C9B1D9EA749006E6391 /* Info.plist */,
 			);
 			path = DemoUITests;
-			sourceTree = "<group>";
-		};
-		05D58CA71D9EA79E006E6391 /* ZDNetWorkHelper */ = {
-			isa = PBXGroup;
-			children = (
-				05D58CA81D9EA79E006E6391 /* ZDNetworkHelper.h */,
-				05D58CA91D9EA79E006E6391 /* ZDNetworkHelper.m */,
-			);
-			path = ZDNetWorkHelper;
 			sourceTree = "<group>";
 		};
 		0912FA0E8E37C34766699C78 /* Pods */ = {
@@ -361,7 +362,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				05D58CAA1D9EA79E006E6391 /* ZDNetworkHelper.m in Sources */,
+				05ABF87B1DA000A1002478A9 /* ZDNetworkHelper.m in Sources */,
 				05D58C7C1D9EA749006E6391 /* ViewController.m in Sources */,
 				05D58C791D9EA749006E6391 /* AppDelegate.m in Sources */,
 				05D58C761D9EA749006E6391 /* main.m in Sources */,

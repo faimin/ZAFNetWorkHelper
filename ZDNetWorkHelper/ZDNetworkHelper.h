@@ -31,7 +31,7 @@ static const NSTimeInterval timeoutInterval = 10;
 NS_ASSUME_NONNULL_BEGIN
 typedef void(^SuccessHandle)(id _Nullable responseObject);
 typedef void(^FailureHandle)(NSError *_Nonnull error);
-typedef void(^ProgressHandle)(NSProgress *_Nonnull progress);
+typedef void(^ProgressHandle)(NSProgress *_Nonnull progress, CGFloat progressValue);
 typedef void(^CachedHandle)(id _Nullable cachedResponse);
 
 

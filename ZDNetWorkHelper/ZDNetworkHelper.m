@@ -39,7 +39,7 @@ static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters){
     NSData *stringData = [NSJSONSerialization dataWithJSONObject:parameters options:NSJSONWritingPrettyPrinted error:&error];
     NSString *paraString = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
     
-    NSString *cacheKey = [NSString stringWithFormat:@"%@%@", URL, paraString];
+    NSString *cacheKey = [NSString stringWithFormat:@"%@?%@", URL, paraString];
     
     return cacheKey;
 }
@@ -130,16 +130,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                                  success:(SuccessHandle)successBlock
                                  failure:(FailureHandle)failureBlock {
 	// 1.处理URL
-    NSString *originURL = [NSString stringWithFormat:@"%@%@", (self.baseURLString ?: @""), URLString];
-    ZD_Log(@"\n❤️ZD_RequestURL👽 = %@\n", originURL);
-    NSString *tempURL = [originURL stringByReplacingOccurrencesOfString:@" " withString:@""];
-    NSString *newURL = @"";
-    if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_8_0) {
-        newURL = [tempURL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];// controlCharacterSet
-    }
-    else {
-        newURL = [tempURL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    }
+    NSString *newURL = [self handleURL:URLString];
 	
 	// 2.发送请求
 	NSURLSessionDataTask *sessionTask = nil;
@@ -147,6 +138,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     switch (httpMethod)
     {
         case HttpMethod_GET: {
+            ZD_Log(@"\n❤️RealRequestURL❤️ = %@ 👽\n\n", ZD_CacheKey(newURL, params));
             // 读取本地缓存
             [NSURLCache setSharedURLCache:[ZDURLCache urlCache]];
             NSURLRequest *urlRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:newURL]];
@@ -155,7 +147,8 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             
             // 请求新的
             sessionTask = [self.httpSessionManager GET:newURL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
-                progressBlock ? progressBlock(downloadProgress) : nil;
+                CGFloat progressValue = (CGFloat)downloadProgress.completedUnitCount / downloadProgress.totalUnitCount;
+                progressBlock ? progressBlock(downloadProgress, progressValue) : nil;
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 __strong __typeof(&*weakSelf)strongSelf = weakSelf;
                 id result = ZD_DecodeData(responseObject);
@@ -193,7 +186,8 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                 (cachedBlock && cachedResponse) ? cachedBlock(ZD_DecodeData(cachedResponse)) : nil;
                 
                 sessionTask = [self.httpSessionManager POST:newURL parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
-                    progressBlock ? progressBlock(uploadProgress) : nil;
+                    CGFloat progressValue = (CGFloat)uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
+                    progressBlock ? progressBlock(uploadProgress, progressValue) : nil;
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     __strong __typeof(&*weakSelf)strongSelf = weakSelf;
                     id result = ZD_DecodeData(responseObject);
@@ -244,7 +238,8 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                         }
                     }
                 } progress:^(NSProgress * _Nonnull uploadProgress) {
-                    progressBlock ? progressBlock(uploadProgress) : nil;
+                    CGFloat progressValue = (CGFloat)uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
+                    progressBlock ? progressBlock(uploadProgress, progressValue) : nil;
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     __strong __typeof(&*weakSelf)strongSelf = weakSelf;
                     successBlock ? successBlock(ZD_DecodeData(responseObject)) : nil;
@@ -290,7 +285,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     
     for (NSInteger i = 0; i < dataCount; i++) {
         dispatch_group_enter(zdGroup);
-        [self requestWithURL:urlString params:dataDic httpMethod:HttpMethod_POST progress:^(NSProgress * _Nonnull progress) {
+        [self requestWithURL:urlString params:dataDic httpMethod:HttpMethod_POST progress:^(NSProgress * _Nonnull progress, CGFloat progressValue) {
             //do nothing
         } success:^(id  _Nullable responseObject) {
             dispatch_semaphore_wait(zdSemaphore, DISPATCH_TIME_FOREVER);
@@ -323,6 +318,21 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 }
 
 #pragma mark - Private Method
+- (NSString *)handleURL:(NSString *)URLString {
+    if (!URLString && !self.baseURLString) return @"";
+    
+    NSString *originURL = [NSString stringWithFormat:@"%@%@", (self.baseURLString ?: @""), URLString];
+    NSString *tempURL = [originURL stringByReplacingOccurrencesOfString:@" " withString:@""];
+    NSString *newURL = @"";
+    if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_8_0) {
+        newURL = [tempURL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+    }
+    else {
+        newURL = [tempURL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    }
+    return newURL;
+}
+
 - (void)detectNetworkStatus:(void(^)(ZDNetworkStatus status))networkStatus {
     AFNetworkReachabilityManager *reachabilityManager = [AFNetworkReachabilityManager sharedManager];
     [reachabilityManager startMonitoring];

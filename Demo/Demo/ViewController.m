@@ -33,6 +33,7 @@ NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDeposit
 
 #pragma mark - Actions
 - (IBAction)fetchDataAction:(id)sender {
+    self.myTextView.text = nil;
     [self fetchData];
     //[self syncGCD];
 }
@@ -41,17 +42,17 @@ NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDeposit
 
 - (void)fetchData {
     __weak __typeof(&*self) weakSelf = self;
-    [[ZDNetworkHelper shareInstance] requestWithURL:url2 params:nil httpMethod:HttpMethod_POST cachedResponse:^(id  _Nullable cachedResponse) {
+    [[ZDNetworkHelper shareInstance] requestWithURL:url1 params:nil httpMethod:HttpMethod_GET cachedResponse:^(id  _Nullable cachedResponse) {
         __strong __typeof(&*weakSelf) strongSelf = weakSelf;
-        NSLog(@"\n\n%@\n\n%@", cachedResponse, [strongSelf stringWithJson:cachedResponse]);
-    } progress:^(NSProgress * _Nonnull progress) {
-        NSLog(@"完成进度: %lld", progress.completedUnitCount/progress.totalUnitCount);
+        ZD_Log(@"\n\n%@\n\n%@", cachedResponse, [strongSelf stringWithJson:cachedResponse]);
+    } progress:^(NSProgress * _Nonnull progress, CGFloat progressValue) {
+        ZD_Log(@"完成进度: %f", (CGFloat)progress.completedUnitCount / progress.totalUnitCount);
     } success:^(id  _Nullable responseObject) {
         __strong __typeof(&*weakSelf) strongSelf = weakSelf;
         strongSelf.myTextView.text = [strongSelf stringWithJson:responseObject];
-        NSLog(@"\n\n%@\n\n%@", responseObject, [strongSelf stringWithJson:responseObject]);
+        ZD_Log(@"\n\n%@\n\n%@", responseObject, [strongSelf stringWithJson:responseObject]);
     } failure:^(NSError * _Nonnull error) {
-        NSLog(@"\nerror:%@", error.localizedDescription);
+        ZD_Log(@"\nerror:%@", error.localizedDescription);
     }];
 }
 
