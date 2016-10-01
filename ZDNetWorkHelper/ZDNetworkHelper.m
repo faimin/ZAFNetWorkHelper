@@ -147,7 +147,10 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             
             // 请求新的
             sessionTask = [self.httpSessionManager GET:newURL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
-                CGFloat progressValue = (CGFloat)downloadProgress.completedUnitCount / downloadProgress.totalUnitCount;
+                CGFloat progressValue = 0.0;
+                if (downloadProgress.totalUnitCount > 0) {
+                    progressValue = (CGFloat)downloadProgress.completedUnitCount / downloadProgress.totalUnitCount;
+                }
                 progressBlock ? progressBlock(downloadProgress, progressValue) : nil;
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 __strong __typeof(&*weakSelf)strongSelf = weakSelf;
@@ -186,7 +189,10 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                 (cachedBlock && cachedResponse) ? cachedBlock(ZD_DecodeData(cachedResponse)) : nil;
                 
                 sessionTask = [self.httpSessionManager POST:newURL parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
-                    CGFloat progressValue = (CGFloat)uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
+                    CGFloat progressValue = 0.0;
+                    if (uploadProgress.totalUnitCount > 0) {
+                        progressValue = (CGFloat)uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
+                    }
                     progressBlock ? progressBlock(uploadProgress, progressValue) : nil;
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     __strong __typeof(&*weakSelf)strongSelf = weakSelf;
@@ -238,7 +244,10 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                         }
                     }
                 } progress:^(NSProgress * _Nonnull uploadProgress) {
-                    CGFloat progressValue = (CGFloat)uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
+                    CGFloat progressValue = 0.0;
+                    if (uploadProgress.totalUnitCount > 0) {
+                        progressValue = (CGFloat)uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
+                    }
                     progressBlock ? progressBlock(uploadProgress, progressValue) : nil;
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     __strong __typeof(&*weakSelf)strongSelf = weakSelf;
