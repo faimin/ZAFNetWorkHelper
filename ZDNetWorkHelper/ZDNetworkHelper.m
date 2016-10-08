@@ -291,7 +291,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                progress:(ProgressHandle)progressBlock
                 success:(SuccessHandle)successBlock
                 failure:(FailureHandle)failureBlock {
-    if (!(urlString && savePath)) return;
+    if (!urlString) return;
     
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlString]];
     
@@ -299,7 +299,14 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     NSURLSessionDownloadTask *downloadTask = [self.httpSessionManager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
         Progress(downloadProgress)
     } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-        return [NSURL URLWithString:savePath];
+        NSString *downloadPath = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:savePath ? : @"ZD_Download"];
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        NSError *__autoreleasing error;
+        [fileManager createDirectoryAtPath:downloadPath withIntermediateDirectories:YES attributes:nil error:&error];
+        if (error) ZD_Log(@"%@", error);
+        NSString *saveFilePath = [downloadPath stringByAppendingPathComponent:response.suggestedFilename];
+        ZD_Log(@"\n下载的文件路径 = %@", saveFilePath);
+        return [NSURL URLWithString:saveFilePath];
     } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
         __strong __typeof(&*weakSelf)strongSelf = weakSelf;
         [[strongSelf allTasks] setValue:nil forKey:urlString];
