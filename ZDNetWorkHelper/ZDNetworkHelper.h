@@ -67,10 +67,26 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
                                  success:(SuccessHandle)successBlock
                                  failure:(FailureHandle)failureBlock;
 
+- (void)downloadWithURL:(NSString *)urlString
+             saveToPath:(NSString *)savePath
+               progress:(ProgressHandle)progressBlock
+                success:(SuccessHandle)successBlock     //回调的是filePath
+                failure:(FailureHandle)failureBlock;
+
+- (void)uploadFileWithURL:(NSString *)urlString
+                 filePath:(NSString *)filePath
+                 progress:(ProgressHandle)progressBlock
+                  success:(SuccessHandle)successBlock
+                  failure:(FailureHandle)failureBlock;
+
 /// 异步上传,结果数组中的url顺序是按添加图片的顺序
-- (void)uploadDataWithURLString:(NSString *)urlString
-                 dataDictionary:(NSDictionary *)dataDic
-                     completion:(void(^)(NSArray *result))completionBlock;
+- (void)uploadDataWithURL:(NSString *)urlString
+           dataDictionary:(NSDictionary *)dataDic
+               completion:(void(^)(NSArray *result))completionBlock;
+
+- (void)uploadFileWithURL:(NSString *)urlString
+                filePaths:(NSArray<NSString *> *)filePaths
+               completion:(void(^)(NSArray *result))completionBlock;
 
 - (void)cancelTaskWithURL:(NSString *)urlString;
 

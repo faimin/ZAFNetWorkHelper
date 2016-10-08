@@ -9,6 +9,14 @@
 #import "ZDNetworkHelper.h"
 #import "AFNetworkActivityIndicatorManager.h"
 #import <CommonCrypto/CommonDigest.h>
+#import <pthread/pthread.h>
+
+#define Progress(progress) CGFloat progressValue = 0.0;                                    \
+                    if (progress.totalUnitCount > 0) {                                      \
+                        progressValue = (CGFloat)progress.completedUnitCount / progress.totalUnitCount;                                                 \
+                    }                                                                       \
+                    progressBlock ? progressBlock(progress, progressValue) : nil;
+
 
 static NSString *ZD_MD5(NSString *string) {
     if (string == nil || [string length] == 0) return nil;
@@ -75,7 +83,10 @@ static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters){
 @implementation ZDNetworkHelper
 {
     AFHTTPSessionManager *_httpSessionManager;
+    //dispatch_semaphore_t _semaphore;
+    pthread_mutex_t _lock;
 }
+
 #pragma mark - Singleton
 
 static ZDNetworkHelper *zdNetworkHelper = nil;
@@ -83,10 +94,19 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
 		zdNetworkHelper = [[ZDNetworkHelper alloc] init];
-        [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
 	});
     
 	return zdNetworkHelper;
+}
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
+        //_semaphore = dispatch_semaphore_create(1);
+        pthread_mutex_init(&_lock, NULL);
+    }
+    return self;
 }
 
 //+ (instancetype)allocWithZone:(struct _NSZone *)zone {
@@ -145,13 +165,9 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             NSCachedURLResponse *cachedResponse = [[ZDURLCache urlCache] cachedResponseForRequest:urlRequest];
             (cachedBlock && cachedResponse.data) ? cachedBlock(ZD_DecodeData(cachedResponse.data)) : nil;
             
-            // 请求新的
+            // 请求新的数据
             sessionTask = [self.httpSessionManager GET:newURL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
-                CGFloat progressValue = 0.0;
-                if (downloadProgress.totalUnitCount > 0) {
-                    progressValue = (CGFloat)downloadProgress.completedUnitCount / downloadProgress.totalUnitCount;
-                }
-                progressBlock ? progressBlock(downloadProgress, progressValue) : nil;
+                Progress(downloadProgress)
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 __strong __typeof(&*weakSelf)strongSelf = weakSelf;
                 id result = ZD_DecodeData(responseObject);
@@ -244,11 +260,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                         }
                     }
                 } progress:^(NSProgress * _Nonnull uploadProgress) {
-                    CGFloat progressValue = 0.0;
-                    if (uploadProgress.totalUnitCount > 0) {
-                        progressValue = (CGFloat)uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
-                    }
-                    progressBlock ? progressBlock(uploadProgress, progressValue) : nil;
+                    Progress(uploadProgress)
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     __strong __typeof(&*weakSelf)strongSelf = weakSelf;
                     successBlock ? successBlock(ZD_DecodeData(responseObject)) : nil;
@@ -273,16 +285,56 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     return sessionTask;
 }
 
-//MARK: Upload
-- (void)uploadDataWithURLString:(NSString *)urlString
-                 dataDictionary:(NSDictionary *)dataDic
-                     completion:(void(^)(NSArray *result))completionBlock {
-//    NSError * __autoreleasing error;
-//    NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:urlString parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-//        NSData* imageData = UIImageJPEGRepresentation(image, 0.9);
-//        [formData appendPartWithFileData:imageData name:@"file" fileName:@"someFileName" mimeType:@"multipart/form-data"];
-//    } error:&error];
+//MARK: Download
+- (void)downloadWithURL:(NSString *)urlString
+             saveToPath:(NSString *)savePath
+               progress:(ProgressHandle)progressBlock
+                success:(SuccessHandle)successBlock
+                failure:(FailureHandle)failureBlock {
+    if (!(urlString && savePath)) return;
     
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlString]];
+    
+    __weak __typeof(&*self)weakSelf = self;
+    NSURLSessionDownloadTask *downloadTask = [self.httpSessionManager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
+        Progress(downloadProgress)
+    } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
+        return [NSURL URLWithString:savePath];
+    } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
+        __strong __typeof(&*weakSelf)strongSelf = weakSelf;
+        [[strongSelf allTasks] setValue:nil forKey:urlString];
+        
+        (successBlock && filePath) ? successBlock(filePath.absoluteString) : nil;
+        (failureBlock && error) ? failureBlock(error) : nil;
+    }];
+    
+    [downloadTask resume];
+    
+    [[self allTasks] setValue:downloadTask forKey:urlString];
+}
+
+//MARK: Upload
+- (void)uploadFileWithURL:(NSString *)urlString
+                 filePath:(NSString *)filePath
+                 progress:(ProgressHandle)progressBlock
+                  success:(SuccessHandle)successBlock
+                  failure:(FailureHandle)failureBlock {
+    if (!(urlString && filePath)) return;
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlString]];
+    NSURL *fileURL = [NSURL URLWithString:filePath];
+    
+    [self.httpSessionManager uploadTaskWithRequest:request fromFile:fileURL progress:^(NSProgress * _Nonnull uploadProgress) {
+        Progress(uploadProgress)
+    } completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
+        (responseObject && successBlock) ? successBlock(responseObject) : nil;
+        (error && failureBlock) ? failureBlock(error) : nil;
+    }];
+}
+
+- (void)uploadDataWithURL:(NSString *)urlString
+           dataDictionary:(NSDictionary *)dataDic
+               completion:(void(^)(NSArray *result))completionBlock {
     NSUInteger dataCount = dataDic.count;
     NSMutableArray *resultArr = [[NSMutableArray alloc] initWithCapacity:dataCount];
     for (NSInteger i = 0; i < dataCount; i++) {
@@ -311,19 +363,57 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     });
 }
 
+- (void)uploadFileWithURL:(NSString *)urlString
+                filePaths:(NSArray<NSString *> *)filePaths
+               completion:(void(^)(NSArray *result))completionBlock {
+    NSUInteger fileCount = filePaths.count;
+    NSMutableArray *resultArr = [[NSMutableArray alloc] initWithCapacity:fileCount];
+    for (NSInteger i = 0; i < fileCount; i++) {
+        [resultArr addObject:[NSNull null]];
+    }
+    
+    dispatch_group_t zdGroup = dispatch_group_create();
+    dispatch_semaphore_t zdSemaphore = dispatch_semaphore_create(1);
+    
+    for (NSInteger i = 0; i < fileCount; i++) {
+        dispatch_group_enter(zdGroup);
+        [self uploadFileWithURL:urlString filePath:filePaths[i] progress:^(NSProgress * _Nonnull progress, CGFloat progressValue) {
+            // do nothing
+        } success:^(id  _Nullable responseObject) {
+            dispatch_semaphore_wait(zdSemaphore, DISPATCH_TIME_FOREVER);
+            resultArr[i] = responseObject;
+            dispatch_semaphore_signal(zdSemaphore);
+            dispatch_group_leave(zdGroup);
+        } failure:^(NSError * _Nonnull error) {
+            dispatch_group_leave(zdGroup);
+        }];
+    }
+    
+    dispatch_group_notify(zdGroup, dispatch_get_main_queue(), ^{
+        completionBlock(resultArr);
+    });
+}
+
 //MARK:取消某一任务
 - (void)cancelTaskWithURL:(NSString *)urlString {
     if (!urlString) return;
-    
-    NSURLSessionDataTask *task = [self allTasks][urlString];
+    //dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
+    pthread_mutex_lock(&_lock);
+    NSURLSessionTask *task = [self allTasks][urlString];
     [task cancel];
     task ? [[self allTasks] setValue:nil forKey:urlString] : nil;
+    //dispatch_semaphore_signal(_semaphore);
+    pthread_mutex_unlock(&_lock);
 }
 
 - (void)cancelAllTasks {
+    //dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
+    pthread_mutex_lock(&_lock);
     for (NSURLSessionTask *task in [[self allTasks] allValues]) {
         [task cancel];
     }
+    //dispatch_semaphore_signal(_semaphore);
+    pthread_mutex_unlock(&_lock);
 }
 
 #pragma mark - Private Method
@@ -386,8 +476,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                                                                          @"text/html",
                                                                          @"text/javascript",
                                                                          @"application/json",
-                                                                         @"application/rss+xml",
-                                                                         @"application/soap+xml",
+                                                                         @"application/javascript",
                                                                          @"application/xml",
                                                                          nil];
         
