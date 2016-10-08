@@ -11,7 +11,8 @@
 
 NSString *const url1 = @"https://daka.facenano.com/checkin/v1/app_binding?phone_number=18700000001&app_version_code=2&device=mobile_ios&company_tag=iPhone-demo&phone_imei=6D56F277-0AAA-4F32-AD01-6C55AEE75964&verification_code=3216";
 NSString *const url2 = @"http://api.douban.com/v2/movie/top250";
-NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDepositShowView&fromPaltform=ds_ios&paymentId=1014&token=9047a07dc6153188b690c8c740cb84f1";
+NSString *const url3 = @"http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=%E8%B4%BE%E9%9D%99%E9%9B%AF&bk_length=600";
+NSString *const downloadURL = @"http://data.vod.itc.cn/?prod=app&new=/194/216/JBUeCIHV4s394vYk3nbgt2.mp4";
 
 @interface ViewController ()
 @property (weak, nonatomic) IBOutlet UITextView *myTextView;
@@ -41,19 +42,37 @@ NSString *const url3 = @"http://10.255.223.149:80/media/api.go?action=getDeposit
 #pragma mark -
 
 - (void)fetchData {
-    __weak __typeof(&*self) weakSelf = self;
-    [[ZDNetworkHelper shareInstance] requestWithURL:url1 params:nil httpMethod:HttpMethod_GET cachedResponse:^(id  _Nullable cachedResponse) {
-        __strong __typeof(&*weakSelf) strongSelf = weakSelf;
-        ZD_Log(@"\n\n%@\n\n%@", cachedResponse, [strongSelf stringWithJson:cachedResponse]);
-    } progress:^(NSProgress * _Nonnull progress, CGFloat progressValue) {
-        ZD_Log(@"完成进度: %f", (CGFloat)progress.completedUnitCount / progress.totalUnitCount);
+    //__weak __typeof(&*self) weakSelf = self;
+    NSArray *urls = @[url1, url2, url3];
+    /*
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        dispatch_apply(urls.count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t i) {
+            ZD_Log(@"第%zd次执行", i);
+            __weak __typeof(&*self) weakSelf = self;
+            [[ZDNetworkHelper shareInstance] requestWithURL:urls[i] params:nil httpMethod:HttpMethod_GET cachedResponse:^(id  _Nullable cachedResponse) {
+                __strong __typeof(&*weakSelf) strongSelf = weakSelf;
+                ZD_Log(@"\n\n%@\n\n%@", cachedResponse, [strongSelf stringWithJson:cachedResponse]);
+            } progress:^(NSProgress * _Nonnull progress, CGFloat progressValue) {
+                ZD_Log(@"完成进度: %f", (CGFloat)progress.completedUnitCount / progress.totalUnitCount);
+            } success:^(id  _Nullable responseObject) {
+                __strong __typeof(&*weakSelf) strongSelf = weakSelf;
+                strongSelf.myTextView.text = [strongSelf stringWithJson:responseObject];
+                ZD_Log(@"\n\n%@\n\n%@", responseObject, [strongSelf stringWithJson:responseObject]);
+            } failure:^(NSError * _Nonnull error) {
+                ZD_Log(@"\nerror:%@", error.localizedDescription);
+            }];
+        });
+    });
+     */
+    
+    [[ZDNetworkHelper shareInstance] downloadWithURL:downloadURL saveToPath:nil progress:^(NSProgress * _Nonnull progress, CGFloat progressValue) {
+        ZD_Log(@"下载进度 = %0.2f", progressValue);
     } success:^(id  _Nullable responseObject) {
-        __strong __typeof(&*weakSelf) strongSelf = weakSelf;
-        strongSelf.myTextView.text = [strongSelf stringWithJson:responseObject];
-        ZD_Log(@"\n\n%@\n\n%@", responseObject, [strongSelf stringWithJson:responseObject]);
+        ZD_Log(@"%@", responseObject);
     } failure:^(NSError * _Nonnull error) {
-        ZD_Log(@"\nerror:%@", error.localizedDescription);
+        ZD_Log(@"错误信息 = %@", error);
     }];
+    
 }
 
 - (NSString *)stringWithJson:(id)temps { //把字典和数组转换成json字符串

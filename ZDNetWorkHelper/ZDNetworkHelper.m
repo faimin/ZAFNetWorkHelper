@@ -87,6 +87,10 @@ static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters){
     pthread_mutex_t _lock;
 }
 
+- (void)dealloc {
+    pthread_mutex_destroy(&_lock);
+}
+
 #pragma mark - Singleton
 
 static ZDNetworkHelper *zdNetworkHelper = nil;
@@ -471,6 +475,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 
 - (AFHTTPSessionManager *)httpSessionManager {
     if (!_httpSessionManager) {
+        pthread_mutex_lock(&_lock);
         _httpSessionManager = [AFHTTPSessionManager manager];
         _httpSessionManager.requestSerializer.timeoutInterval = timeoutInterval;
         
@@ -514,6 +519,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             __strong __typeof(&*weakSelf)strongSelf = weakSelf;
             strongSelf.networkStatus = status;
         }];
+        pthread_mutex_unlock(&_lock);
     }
     
     return _httpSessionManager;

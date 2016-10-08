@@ -68,7 +68,7 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
                                  failure:(FailureHandle)failureBlock;
 
 - (void)downloadWithURL:(NSString *)urlString
-             saveToPath:(NSString *)savePath
+             saveToPath:(nullable NSString *)savePath
                progress:(ProgressHandle)progressBlock
                 success:(SuccessHandle)successBlock     //回调的是filePath
                 failure:(FailureHandle)failureBlock;
