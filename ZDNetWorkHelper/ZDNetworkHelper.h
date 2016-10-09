@@ -79,7 +79,7 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
                   success:(SuccessHandle)successBlock
                   failure:(FailureHandle)failureBlock;
 
-/// 异步上传,结果数组中的url顺序是按添加图片的顺序
+/// 异步上传,回调数组中的url顺序与添加图片时的顺序一一对应
 - (void)uploadDataWithURL:(NSString *)urlString
            dataDictionary:(NSDictionary *)dataDic
                completion:(void(^)(NSArray *result))completionBlock;
@@ -91,7 +91,6 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
 - (void)cancelTaskWithURL:(NSString *)urlString;
 
 - (void)cancelAllTasks;
-
 
 @end
 NS_ASSUME_NONNULL_END

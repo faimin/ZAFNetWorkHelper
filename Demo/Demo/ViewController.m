@@ -12,9 +12,11 @@
 NSString *const url1 = @"https://daka.facenano.com/checkin/v1/app_binding?phone_number=18700000001&app_version_code=2&device=mobile_ios&company_tag=iPhone-demo&phone_imei=6D56F277-0AAA-4F32-AD01-6C55AEE75964&verification_code=3216";
 NSString *const url2 = @"http://api.douban.com/v2/movie/top250";
 NSString *const url3 = @"http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=贾静雯&bk_length=600";
+
 NSString *const downloadURL1 = @"http://data.vod.itc.cn/?prod=app&new=/194/216/JBUeCIHV4s394vYk3nbgt2.mp4";
 NSString *const downloadURL2 = @"http://down.sandai.net/thunderspeed/ThunderSpeed1.0.34.360.exe";
 NSString *const downloadURL3 = @"http://down.sandai.net/XLNetAcc/XLNetAccSetup.exe";
+
 NSString *const imageURL1 = @"http://img.ivsky.com/img/bizhi/pre/201609/24/keaigougougaoqingtupianbizhi2.jpg";
 NSString *const imageURL2 = @"http://desk.fd.zol-img.com.cn/t_s1600x900c5/g5/M00/0F/06/ChMkJlfI162IeK07AAY_egKaTWoAAU6qQHhDUcABj-S342.jpg?downfile=1475999712902.jpg";
 NSString *const imageURL3 = @"http://static.zoommyapp.com/full/58580.jpg";
@@ -42,6 +44,7 @@ NSString *const imageURL3 = @"http://static.zoommyapp.com/full/58580.jpg";
 - (IBAction)fetchDataAction:(id)sender {
     self.myTextView.text = nil;
     [self fetchData];
+    //[self downloadFile];
     //[self syncGCD];
 }
 
@@ -53,9 +56,7 @@ NSString *const imageURL3 = @"http://static.zoommyapp.com/full/58580.jpg";
 #pragma mark -
 
 - (void)fetchData {
-    //__weak __typeof(&*self) weakSelf = self;
-    __unused NSArray *urls = @[url1, url2, url3];
-    /*
+    NSArray *urls = @[url1, url2, url3];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         dispatch_apply(urls.count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t i) {
             ZD_Log(@"第%zd次执行", i);
@@ -74,8 +75,6 @@ NSString *const imageURL3 = @"http://static.zoommyapp.com/full/58580.jpg";
             }];
         });
     });
-     */
-    
 }
 
 - (void)downloadFile {
@@ -89,16 +88,6 @@ NSString *const imageURL3 = @"http://static.zoommyapp.com/full/58580.jpg";
     } failure:^(NSError * _Nonnull error) {
         ZD_Log(@"错误信息 = %@", error);
     }];
-}
-
-- (NSString *)stringWithJson:(id)temps { //把字典和数组转换成json字符串
-    if (!temps) return nil;
-    
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:temps
-                                                       options:NSJSONWritingPrettyPrinted error:nil];
-    NSString *strs = [[NSString alloc] initWithData:jsonData
-                                           encoding:NSUTF8StringEncoding];
-    return strs;
 }
 
 //MARK:利用GCD notify同步线程
@@ -119,6 +108,19 @@ NSString *const imageURL3 = @"http://static.zoommyapp.com/full/58580.jpg";
         NSLog(@"执行完毕");
     });
 }
+
+#pragma mark - Private Method
+
+- (NSString *)stringWithJson:(id)temps { //把字典和数组转换成json字符串
+    if (!temps) return nil;
+    
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:temps
+                                                       options:NSJSONWritingPrettyPrinted error:nil];
+    NSString *strs = [[NSString alloc] initWithData:jsonData
+                                           encoding:NSUTF8StringEncoding];
+    return strs;
+}
+
 
 
 @end

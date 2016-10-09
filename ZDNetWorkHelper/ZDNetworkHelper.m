@@ -4,31 +4,23 @@
 //
 // Created by Zero on 14/11/21.
 // Copyright (c) 2014年 Zero.D.Saber. All rights reserved.
-// refer:https://github.com/jkpang/PPNetworkHelper &&
+//
 
 #import "ZDNetworkHelper.h"
 #import <pthread/pthread.h>
 #import <CommonCrypto/CommonDigest.h>
 #import "AFNetworkActivityIndicatorManager.h"
 
-#define Progress(progress) CGFloat progressValue = 0.0f;                                     \
+#define Progress(progress) CGFloat progressValue = 0.0f;                                    \
                     if (progress.totalUnitCount > 0) {                                      \
                         progressValue = (CGFloat)progress.completedUnitCount / progress.totalUnitCount;                                                 \
                     }                                                                       \
                     progressBlock ? progressBlock(progress, progressValue) : nil;
 
 static BOOL ZD_IsEmptyOrNil(NSString *string) {
-    if (string == nil || string == NULL) {
-        return YES;
-    }
-    
-    if ([string isKindOfClass:[NSNull class]]) {
-        return YES;
-    }
-    
-    if ([[string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] length] == 0) {
-        return YES;
-    }
+    if (string == nil || string == NULL) return YES;
+    if ([string isKindOfClass:[NSNull class]]) return YES;
+    if ([[string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] length] == 0) return YES;
     
     return NO;
 }
@@ -66,8 +58,9 @@ static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters){
     return cacheKey;
 }
 
-@interface ZDURLCache : NSURLCache
+#pragma mark -
 
+@interface ZDURLCache : NSURLCache
 /// 单例
 + (instancetype)urlCache;
 
@@ -498,15 +491,19 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 - (AFHTTPSessionManager *)httpSessionManager {
     if (!_httpSessionManager) {
         pthread_mutex_lock(&_lock);
+        //dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
         _httpSessionManager = [AFHTTPSessionManager manager];
         _httpSessionManager.requestSerializer.timeoutInterval = timeoutInterval;
         
-        _httpSessionManager.requestSerializer = [AFHTTPRequestSerializer serializer];
-        _httpSessionManager.responseSerializer = [AFHTTPResponseSerializer serializer];
+        _httpSessionManager.requestSerializer = [AFJSONRequestSerializer serializer];
+        AFJSONResponseSerializer *jsonResponseSerializer = [AFJSONResponseSerializer serializerWithReadingOptions:NSJSONReadingAllowFragments];
+        jsonResponseSerializer.removesKeysWithNullValues = YES;
+        _httpSessionManager.responseSerializer = jsonResponseSerializer;
+        ///`contentTypes`: http://www.iana.org/assignments/media-types/media-types.xhtml
         _httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:
+                                                                         @"text/plain",
                                                                          @"text/json",
                                                                          @"text/xml",
-                                                                         @"text/plain",
                                                                          @"text/html",
                                                                          @"text/javascript",
                                                                          @"application/json",
@@ -542,6 +539,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             strongSelf.networkStatus = status;
         }];
         pthread_mutex_unlock(&_lock);
+        //dispatch_semaphore_signal(_semaphore);
     }
     
     return _httpSessionManager;
@@ -551,33 +549,10 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 @end
 
 
-/**
- *  @discussion   下面如果写成 sessionManager.responseSerializer = [AFJSONResponseSerializer serializer]会出现1016的错误.这种方法只能解析返回的是Json类型的数据,其他类型无法解析。
- *
- *  @add
- *
- *  AFJSONResponseSerializer *jsonResponse = [AFJSONResponseSerializer serializer];
- *  jsonResponse.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript",@"text/plain",@"text/html", nil];
- *  sessionManager.responseSerializer = jsonResponse;
- *
- *  这样就可以自动解析了
- *  此处我是手动解析的,因为有的数据还是无法自动解析
- */
-
-// 4.返回数据的格式(默认是json格式)
-
-/**
- *  当AF带的方法不能自动解析的时候再打开下面的
- *  此处我是让它返回的是NSData二进制数据类型,然后自己手动解析;
- *  默认情况下,提交的是二进制数据请求,返回Json格式的数据
- */
-// sessionManager.responseSerializer = [AFHTTPResponseSerializer serializer];
-
-
 #pragma mark - ZDCache
 #pragma mark -
 
-#define ZD_M (1024 * 1024)
+#define ZD_M (1024 * 1024)  // 1M
 #define ZD_MAX_MEMORY_CACHE_SIZE (10 * ZD_M)
 #define ZD_MAX_DISK_CACHE_SIZE (30 * ZD_M)
 #define ZD_CACHE_PATH ([NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"ZDNetworkCache"])
