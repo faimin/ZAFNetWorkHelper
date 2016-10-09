@@ -1,5 +1,5 @@
 //
-//  ZAFNetWorkService.h
+//  ZDNetWorkService.h
 //  RequestNetWork
 //
 //  Created by Zero on 14/11/21.
@@ -67,11 +67,11 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
                                  success:(SuccessHandle)successBlock
                                  failure:(FailureHandle)failureBlock;
 
-- (void)downloadWithURL:(NSString *)urlString
-             saveToPath:(nullable NSString *)savePath
-               progress:(ProgressHandle)progressBlock
-                success:(SuccessHandle)successBlock     //回调的是filePath
-                failure:(FailureHandle)failureBlock;
+- (nullable NSURLSessionDownloadTask *)downloadWithURL:(NSString *)urlString
+                                            saveToPath:(nullable NSString *)savePath
+                                              progress:(ProgressHandle)progressBlock
+                                               success:(SuccessHandle)successBlock // 回调的是filePath
+                                               failure:(FailureHandle)failureBlock;
 
 - (void)uploadFileWithURL:(NSString *)urlString
                  filePath:(NSString *)filePath

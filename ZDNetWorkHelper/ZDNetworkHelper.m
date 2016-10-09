@@ -1,25 +1,40 @@
 //
-// ZSNetWorkService.m
+// ZDNetWorkService.m
 // RequestNetWork
 //
 // Created by Zero on 14/11/21.
 // Copyright (c) 2014年 Zero.D.Saber. All rights reserved.
-// refer:https://github.com/jkpang/PPNetworkHelper && https://github.com/cbangchen/CBNetworking
+// refer:https://github.com/jkpang/PPNetworkHelper &&
 
 #import "ZDNetworkHelper.h"
-#import "AFNetworkActivityIndicatorManager.h"
-#import <CommonCrypto/CommonDigest.h>
 #import <pthread/pthread.h>
+#import <CommonCrypto/CommonDigest.h>
+#import "AFNetworkActivityIndicatorManager.h"
 
-#define Progress(progress) CGFloat progressValue = 0.0;                                    \
+#define Progress(progress) CGFloat progressValue = 0.0f;                                     \
                     if (progress.totalUnitCount > 0) {                                      \
                         progressValue = (CGFloat)progress.completedUnitCount / progress.totalUnitCount;                                                 \
                     }                                                                       \
                     progressBlock ? progressBlock(progress, progressValue) : nil;
 
+static BOOL ZD_IsEmptyOrNil(NSString *string) {
+    if (string == nil || string == NULL) {
+        return YES;
+    }
+    
+    if ([string isKindOfClass:[NSNull class]]) {
+        return YES;
+    }
+    
+    if ([[string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] length] == 0) {
+        return YES;
+    }
+    
+    return NO;
+}
 
 static NSString *ZD_MD5(NSString *string) {
-    if (string == nil || [string length] == 0) return nil;
+    if (ZD_IsEmptyOrNil(string)) return nil;
     
     unsigned char digest[CC_MD5_DIGEST_LENGTH], i;
     CC_MD5([string UTF8String], (int)[string lengthOfBytesUsingEncoding:NSUTF8StringEncoding], digest);
@@ -37,7 +52,6 @@ static id ZD_DecodeData(id data) {
     id result = [data isKindOfClass:[NSData class]] ? [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error] : data;
     return result;
 }
-
 
 static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters){
     if (!parameters) return URL;
@@ -108,7 +122,11 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     if (self) {
         [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
         //_semaphore = dispatch_semaphore_create(1);
-        pthread_mutex_init(&_lock, NULL);
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
+        
+        pthread_mutex_init(&_lock, &attr);
     }
     return self;
 }
@@ -209,11 +227,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                 (cachedBlock && cachedResponse) ? cachedBlock(ZD_DecodeData(cachedResponse)) : nil;
                 
                 sessionTask = [self.httpSessionManager POST:newURL parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
-                    CGFloat progressValue = 0.0;
-                    if (uploadProgress.totalUnitCount > 0) {
-                        progressValue = (CGFloat)uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
-                    }
-                    progressBlock ? progressBlock(uploadProgress, progressValue) : nil;
+                    Progress(uploadProgress)
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     __strong __typeof(&*weakSelf)strongSelf = weakSelf;
                     id result = ZD_DecodeData(responseObject);
@@ -290,12 +304,12 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 }
 
 //MARK: Download
-- (void)downloadWithURL:(NSString *)urlString
-             saveToPath:(NSString *)savePath
-               progress:(ProgressHandle)progressBlock
-                success:(SuccessHandle)successBlock
-                failure:(FailureHandle)failureBlock {
-    if (!urlString) return;
+- (NSURLSessionDownloadTask *)downloadWithURL:(NSString *)urlString
+                                   saveToPath:(NSString *)savePath
+                                     progress:(ProgressHandle)progressBlock
+                                      success:(SuccessHandle)successBlock
+                                      failure:(FailureHandle)failureBlock {
+    if (ZD_IsEmptyOrNil(urlString)) return nil;
     
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlString]];
     
@@ -303,14 +317,20 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     NSURLSessionDownloadTask *downloadTask = [self.httpSessionManager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
         Progress(downloadProgress)
     } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-        NSString *downloadPath = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:savePath ? : @"ZD_Download"];
+        NSString *downloadPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:savePath ? : @"ZD_Download"];
+        
         NSFileManager *fileManager = [NSFileManager defaultManager];
-        NSError *__autoreleasing error;
-        [fileManager createDirectoryAtPath:downloadPath withIntermediateDirectories:YES attributes:nil error:&error];
-        if (error) ZD_Log(@"%@", error);
-        NSString *saveFilePath = [downloadPath stringByAppendingPathComponent:response.suggestedFilename];
-        ZD_Log(@"\n下载的文件路径 = %@", saveFilePath);
-        return [NSURL URLWithString:saveFilePath];
+        BOOL isDirectory;
+        BOOL isExistFile = [fileManager fileExistsAtPath:downloadPath isDirectory:&isDirectory];
+        if (!(isExistFile && isDirectory)) {
+            NSError *__autoreleasing error;
+            [fileManager createDirectoryAtPath:downloadPath withIntermediateDirectories:YES attributes:nil error:&error];
+            if (error) ZD_Log(@"创建文件夹时的错误信息----->%@", error.localizedDescription);
+        }
+        NSString *savedPath = [downloadPath stringByAppendingPathComponent:response.suggestedFilename];
+        ZD_Log(@"下载完成,文件路径 = %@", savedPath);
+        
+        return [NSURL fileURLWithPath:savedPath];
     } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
         __strong __typeof(&*weakSelf)strongSelf = weakSelf;
         [[strongSelf allTasks] setValue:nil forKey:urlString];
@@ -322,6 +342,8 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     [downloadTask resume];
     
     [[self allTasks] setValue:downloadTask forKey:urlString];
+    
+    return downloadTask;
 }
 
 //MARK: Upload
@@ -330,7 +352,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                  progress:(ProgressHandle)progressBlock
                   success:(SuccessHandle)successBlock
                   failure:(FailureHandle)failureBlock {
-    if (!(urlString && filePath)) return;
+    if (ZD_IsEmptyOrNil(urlString) || ZD_IsEmptyOrNil(filePath)) return;
     
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlString]];
     NSURL *fileURL = [NSURL URLWithString:filePath];
@@ -407,7 +429,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 
 //MARK:取消某一任务
 - (void)cancelTaskWithURL:(NSString *)urlString {
-    if (!urlString) return;
+    if (ZD_IsEmptyOrNil(urlString)) return;
     //dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     pthread_mutex_lock(&_lock);
     NSURLSessionTask *task = [self allTasks][urlString];
@@ -429,7 +451,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 
 #pragma mark - Private Method
 - (NSString *)handleURL:(NSString *)URLString {
-    if (!URLString && !self.baseURLString) return @"";
+    if (ZD_IsEmptyOrNil(URLString) && ZD_IsEmptyOrNil(self.baseURLString)) return @"";
     
     NSString *originURL = [NSString stringWithFormat:@"%@%@", (self.baseURLString ?: @""), URLString];
     NSString *tempURL = [originURL stringByReplacingOccurrencesOfString:@" " withString:@""];
@@ -613,16 +635,19 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
 + (void)cacheResponseObject:(id)responseObject
                         url:(NSString *)urlString
                      params:(NSDictionary *)params {
-    if (urlString && responseObject && ![responseObject isKindOfClass:[NSNull class]]) {
+    if (!ZD_IsEmptyOrNil(urlString) && responseObject && ![responseObject isKindOfClass:[NSNull class]]) {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             NSString *directoryPath = ZD_CACHE_PATH;
             
             NSError * __autoreleasing error = nil;
-            if (![[NSFileManager defaultManager] fileExistsAtPath:directoryPath isDirectory:nil]) {
+            BOOL isFileExist = [[NSFileManager defaultManager] fileExistsAtPath:directoryPath isDirectory:nil];
+            if (!isFileExist) {
                 [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath
                                           withIntermediateDirectories:YES
                                                            attributes:nil
                                                                 error:&error];
+                if (error) ZD_Log(@"创建文件夹失败 == %@", error);
+                error = nil;
             }
             
             NSString *originString = ZD_CacheKey(urlString, params);

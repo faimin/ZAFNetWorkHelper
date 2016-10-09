@@ -11,11 +11,17 @@
 
 NSString *const url1 = @"https://daka.facenano.com/checkin/v1/app_binding?phone_number=18700000001&app_version_code=2&device=mobile_ios&company_tag=iPhone-demo&phone_imei=6D56F277-0AAA-4F32-AD01-6C55AEE75964&verification_code=3216";
 NSString *const url2 = @"http://api.douban.com/v2/movie/top250";
-NSString *const url3 = @"http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=%E8%B4%BE%E9%9D%99%E9%9B%AF&bk_length=600";
-NSString *const downloadURL = @"http://data.vod.itc.cn/?prod=app&new=/194/216/JBUeCIHV4s394vYk3nbgt2.mp4";
+NSString *const url3 = @"http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=贾静雯&bk_length=600";
+NSString *const downloadURL1 = @"http://data.vod.itc.cn/?prod=app&new=/194/216/JBUeCIHV4s394vYk3nbgt2.mp4";
+NSString *const downloadURL2 = @"http://down.sandai.net/thunderspeed/ThunderSpeed1.0.34.360.exe";
+NSString *const downloadURL3 = @"http://down.sandai.net/XLNetAcc/XLNetAccSetup.exe";
+NSString *const imageURL1 = @"http://img.ivsky.com/img/bizhi/pre/201609/24/keaigougougaoqingtupianbizhi2.jpg";
+NSString *const imageURL2 = @"http://desk.fd.zol-img.com.cn/t_s1600x900c5/g5/M00/0F/06/ChMkJlfI162IeK07AAY_egKaTWoAAU6qQHhDUcABj-S342.jpg?downfile=1475999712902.jpg";
+NSString *const imageURL3 = @"http://static.zoommyapp.com/full/58580.jpg";
 
 @interface ViewController ()
 @property (weak, nonatomic) IBOutlet UITextView *myTextView;
+@property (nonatomic, strong) NSURLSessionTask *task;
 @end
 
 @implementation ViewController
@@ -39,11 +45,16 @@ NSString *const downloadURL = @"http://data.vod.itc.cn/?prod=app&new=/194/216/JB
     //[self syncGCD];
 }
 
+- (IBAction)cancelRequest:(id)sender {
+    //[[ZDNetworkHelper shareInstance] cancelTaskWithURL:downloadURL2];
+    [self.task cancel];
+}
+
 #pragma mark -
 
 - (void)fetchData {
     //__weak __typeof(&*self) weakSelf = self;
-    NSArray *urls = @[url1, url2, url3];
+    __unused NSArray *urls = @[url1, url2, url3];
     /*
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         dispatch_apply(urls.count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t i) {
@@ -65,14 +76,19 @@ NSString *const downloadURL = @"http://data.vod.itc.cn/?prod=app&new=/194/216/JB
     });
      */
     
-    [[ZDNetworkHelper shareInstance] downloadWithURL:downloadURL saveToPath:nil progress:^(NSProgress * _Nonnull progress, CGFloat progressValue) {
+}
+
+- (void)downloadFile {
+    __weak __typeof(&*self)weakSelf = self;
+    self.task = [[ZDNetworkHelper new] downloadWithURL:downloadURL2 saveToPath:nil progress:^(NSProgress * _Nonnull progress, CGFloat progressValue) {
         ZD_Log(@"下载进度 = %0.2f", progressValue);
     } success:^(id  _Nullable responseObject) {
-        ZD_Log(@"%@", responseObject);
+        __strong __typeof(&*weakSelf)self = weakSelf;
+        self.myTextView.text = responseObject;
+        ZD_Log(@"下载完成的文件路径：%@", responseObject);
     } failure:^(NSError * _Nonnull error) {
         ZD_Log(@"错误信息 = %@", error);
     }];
-    
 }
 
 - (NSString *)stringWithJson:(id)temps { //把字典和数组转换成json字符串
