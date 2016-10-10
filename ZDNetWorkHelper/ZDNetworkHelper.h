@@ -26,8 +26,6 @@ typedef NS_ENUM(NSInteger, ZDNetworkStatus) {
     ZDNetworkStatusWiFi             = 2,    ///< WiFi
 };
 
-static const NSTimeInterval timeoutInterval = 10;
-
 NS_ASSUME_NONNULL_BEGIN
 typedef void(^SuccessHandle)(id _Nullable responseObject);
 typedef void(^FailureHandle)(NSError *_Nonnull error);
@@ -37,10 +35,11 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
 
 @interface ZDNetworkHelper : NSObject
 
-@property (nonatomic, copy, nullable) NSString *baseURLString;      ///< baseURL
-@property (nonatomic, assign) ZDNetworkStatus networkStatus;        ///< 网络状态
+@property (nonatomic, copy, nullable) NSString *baseURLString;          ///< baseURL
+@property (class, nonatomic, readonly) ZDNetworkStatus networkStatus;   ///< 网络状态
+@property (class, nonatomic) BOOL hasCertificate;                       ///< 有无证书
 
-/// @brief 单例
+/// @brief helper单例
 /// @return 实例化后的selfClass
 + (instancetype)shareInstance;
 
@@ -91,6 +90,9 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
 - (void)cancelTaskWithURL:(NSString *)urlString;
 
 - (void)cancelAllTasks;
+
+/// 监控网络变化
++ (void)detectNetworkStatus:(void(^)(ZDNetworkStatus status))networkStatus;
 
 @end
 NS_ASSUME_NONNULL_END
