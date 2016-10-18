@@ -10,6 +10,7 @@
 #import <pthread/pthread.h>
 #import <CommonCrypto/CommonDigest.h>
 #import "AFNetworkActivityIndicatorManager.h"
+#import "AFNetworking.h"
 
 #define Progress(progress) CGFloat progressValue = 0.0f;                                    \
                     if (progress.totalUnitCount > 0) {                                      \
@@ -495,6 +496,10 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 
 - (void)cancelAllOperations {
     [_httpSessionManager.operationQueue cancelAllOperations];
+}
+
+- (void)invalidateSession {
+    [_httpSessionManager invalidateSessionCancelingTasks:YES];
 }
 
 #pragma mark - Private Method

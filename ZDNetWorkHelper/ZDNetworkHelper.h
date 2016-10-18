@@ -6,8 +6,8 @@
 //  Copyright (c) 2014年 Zero.D.Saber. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-#import "AFNetworking.h"
+@import Foundation;
+@import UIKit;
 
 #ifdef DEBUG
 #define ZD_Log(fmt, ...) NSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__);
@@ -59,12 +59,12 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
                                           failure:(nullable FailureHandle)failureBlock;
 
 - (nullable NSURLSessionDataTask *)requestWithURL:(NSString *)URLString
-                                  params:(nullable id)params
-                              httpMethod:(HttpMethod)httpMethod
-                          cachedResponse:(nullable CachedHandle)cachedBlock
-                                progress:(ProgressHandle)progressBlock
-                                 success:(SuccessHandle)successBlock
-                                 failure:(FailureHandle)failureBlock;
+                                           params:(nullable id)params
+                                       httpMethod:(HttpMethod)httpMethod
+                                   cachedResponse:(nullable CachedHandle)cachedBlock
+                                         progress:(ProgressHandle)progressBlock
+                                          success:(SuccessHandle)successBlock
+                                          failure:(FailureHandle)failureBlock;
 
 - (nullable NSURLSessionDownloadTask *)downloadWithURL:(NSString *)urlString
                                             saveToPath:(nullable NSString *)savePath
@@ -90,6 +90,9 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
 - (void)cancelTaskWithURL:(NSString *)urlString;
 
 - (void)cancelAllTasks;
+
+/// 使session无效化，并取消挂起的任务
+- (void)invalidateSession;
 
 /// 监控网络变化
 + (void)detectNetworkStatus:(void(^)(ZDNetworkStatus status))networkStatus;
