@@ -545,10 +545,10 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 #pragma mark - Property
 
 + (void)setHasCertificate:(BOOL)hasCertificate {
-    /// http://www.tuicool.com/articles/6Vfuu2M 验证HTTPS请求证书
+    /// http://www.tuicool.com/articles/6Vfuu2M && http://blog.cnbang.net/tech/2416/
+    /// 验证HTTPS请求证书
     _hasCertificate = hasCertificate;
     if (hasCertificate) {
-        ///有证书时AF会自动从bundle中寻找并加载cer格式的证书
         _httpSessionManager.securityPolicy = ({
             AFSecurityPolicy *securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModePublicKey];
             securityPolicy.allowInvalidCertificates = YES;
