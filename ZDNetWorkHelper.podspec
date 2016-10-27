@@ -1,3 +1,5 @@
+source 'https://github.com/CocoaPods/Specs.git'
+
 Pod::Spec.new do |s|
   s.name         = 'ZDNetWorkHelper'
   s.version      = '0.3.1'
