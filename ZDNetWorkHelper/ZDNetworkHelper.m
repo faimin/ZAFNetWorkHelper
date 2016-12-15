@@ -9,8 +9,8 @@
 #import "ZDNetworkHelper.h"
 #import <pthread/pthread.h>
 #import <CommonCrypto/CommonDigest.h>
-#import "AFNetworkActivityIndicatorManager.h"
-#import "AFNetworking.h"
+#import <AFNetworking/AFNetworkActivityIndicatorManager.h>
+#import <AFNetworking/AFNetworking.h>
 
 #define Progress(progress) CGFloat progressValue = 0.0f;                                    \
                     if (progress.totalUnitCount > 0) {                                      \
@@ -503,6 +503,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 }
 
 #pragma mark - Private Method
+
 - (NSString *)handleURL:(NSString *)URLString {
     if (ZD_IsEmptyOrNil(URLString) && ZD_IsEmptyOrNil(self.baseURLString)) return @"";
     
@@ -588,14 +589,26 @@ static NSString * const ZDURLCachedExpirationKey = @"ZDURLCachedExpirationDateKe
 static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
 
 @implementation ZDURLCache
+{
+    int _fileDescriptor;
+    dispatch_source_t _source;
+}
 
 + (instancetype)urlCache {
     static ZDURLCache *_cache = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _cache = [[ZDURLCache alloc] initWithMemoryCapacity:ZD_MAX_MEMORY_CACHE_SIZE diskCapacity:ZD_MAX_DISK_CACHE_SIZE diskPath:nil];
+        [_cache monitorDirectory];
     });
     return _cache;
+}
+
+- (instancetype)init {
+    if (self = [super init]) {
+        [self monitorDirectory];
+    }
+    return self;
 }
 
 #pragma mark - 缓存GET请求
@@ -634,6 +647,7 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
 }
 
 #pragma mark - 缓存POST请求
+
 + (void)cacheResponseObject:(id)responseObject
                         url:(NSString *)urlString
                      params:(NSDictionary *)params {
@@ -688,6 +702,43 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
         if (error) ZD_Log(@"%@", error);
     }
     return cacheData;
+}
+
+#pragma mark - 监听缓存文件夹
+
+- (void)monitorDirectory {
+    NSURL *directoryURL = [NSURL URLWithString:ZD_CACHE_PATH];
+    _fileDescriptor = open(directoryURL.path.fileSystemRepresentation, O_EVTONLY);
+    if (_fileDescriptor < 0) {
+        NSLog(@"Unable to open the path = %@", ZD_CACHE_PATH);
+        return;
+    }
+    dispatch_queue_t zd_queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_source_t source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, _fileDescriptor, DISPATCH_VNODE_WRITE, zd_queue);
+    _source = source;
+    
+    dispatch_source_set_event_handler(source, ^{
+        unsigned long const type = dispatch_source_get_data(source);
+        switch (type) {
+            case DISPATCH_VNODE_WRITE:
+                NSLog(@"文件内容发生变化了");
+                //TODO:
+                break;
+                
+            default:
+                break;
+        }
+    });
+    dispatch_source_set_cancel_handler(source, ^{
+        close(_fileDescriptor);
+        _fileDescriptor = 0;
+        _source = NULL;
+    });
+    dispatch_resume(source);
+}
+
+- (void)stopMonitor {
+    dispatch_cancel(_source);
 }
 
 #pragma mark
