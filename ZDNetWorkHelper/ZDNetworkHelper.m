@@ -594,18 +594,21 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
     dispatch_source_t _source;
 }
 
+- (void)dealloc {
+    [self stopMonitor];
+}
+
 + (instancetype)urlCache {
     static ZDURLCache *_cache = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _cache = [[ZDURLCache alloc] initWithMemoryCapacity:ZD_MAX_MEMORY_CACHE_SIZE diskCapacity:ZD_MAX_DISK_CACHE_SIZE diskPath:nil];
-        [_cache monitorDirectory];
     });
     return _cache;
 }
 
-- (instancetype)init {
-    if (self = [super init]) {
+- (instancetype)initWithMemoryCapacity:(NSUInteger)memoryCapacity diskCapacity:(NSUInteger)diskCapacity diskPath:(NSString *)path {
+    if (self = [super initWithMemoryCapacity:memoryCapacity diskCapacity:diskCapacity diskPath:path]) {
         [self monitorDirectory];
     }
     return self;
@@ -714,7 +717,10 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
         return;
     }
     dispatch_queue_t zd_queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    dispatch_source_t source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, _fileDescriptor, DISPATCH_VNODE_WRITE, zd_queue);
+    dispatch_source_t source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE,
+                                                      _fileDescriptor,
+                                                      DISPATCH_VNODE_ATTRIB | DISPATCH_VNODE_DELETE | DISPATCH_VNODE_EXTEND | DISPATCH_VNODE_LINK | DISPATCH_VNODE_RENAME | DISPATCH_VNODE_REVOKE | DISPATCH_VNODE_WRITE,
+                                                      zd_queue);
     _source = source;
     
     dispatch_source_set_event_handler(source, ^{
