@@ -11,7 +11,7 @@
 
 NSString *const url1 = @"https://daka.facenano.com/checkin/v1/app_binding?phone_number=18700000001&app_version_code=2&device=mobile_ios&company_tag=iPhone-demo&phone_imei=6D56F277-0AAA-4F32-AD01-6C55AEE75964&verification_code=3216";
 NSString *const url2 = @"http://api.douban.com/v2/movie/top250";
-NSString *const url3 = @"http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=贾静雯&bk_length=600";
+NSString *const url3 = @"http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=成龙&bk_length=600";
 
 NSString *const downloadURL1 = @"http://data.vod.itc.cn/?prod=app&new=/194/216/JBUeCIHV4s394vYk3nbgt2.mp4";
 NSString *const downloadURL2 = @"http://down.sandai.net/thunderspeed/ThunderSpeed1.0.34.360.exe";
@@ -56,12 +56,12 @@ NSString *const imageURL3 = @"http://static.zoommyapp.com/full/58580.jpg";
 #pragma mark -
 
 - (void)fetchData {
-    NSArray *urls = @[url1, url2, url3];
+    NSArray *urls = @[/*url1,*/ url2, url3];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         dispatch_apply(urls.count, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t i) {
             ZD_Log(@"第%zd次执行", i);
             __weak __typeof(&*self) weakSelf = self;
-            [[ZDNetworkHelper shareInstance] requestWithURL:urls[i] params:nil httpMethod:HttpMethod_GET cachedResponse:^(id  _Nullable cachedResponse) {
+            [[ZDNetworkHelper shareInstance] requestWithURL:urls[i] params:nil httpMethod:HttpMethod_POST cachedResponse:^(id  _Nullable cachedResponse) {
                 __strong __typeof(&*weakSelf) strongSelf = weakSelf;
                 ZD_Log(@"\n\n%@\n\n%@", cachedResponse, [strongSelf stringWithJson:cachedResponse]);
             } progress:^(NSProgress * _Nonnull progress, CGFloat progressValue) {

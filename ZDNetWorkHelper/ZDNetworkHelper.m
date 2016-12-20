@@ -11,6 +11,7 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <AFNetworking/AFNetworkActivityIndicatorManager.h>
 #import <AFNetworking/AFNetworking.h>
+#import <SGDirWatchdog.h>
 
 #define Progress(progress) CGFloat progressValue = 0.0f;                                    \
                     if (progress.totalUnitCount > 0) {                                      \
@@ -76,12 +77,14 @@ static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters){
                  forRequest:(NSURLRequest *)request;
 
 // 以下针对的是POST请求缓存，因为NSURLCache只支持GET请求
-+ (id)getCacheResponseWithURL:(NSString *)url
+- (id)getCacheResponseWithURL:(NSString *)url
                        params:(NSDictionary *)params;
 
-+ (void)cacheResponseObject:(id)responseObject
+- (void)cacheResponseObject:(id)responseObject
                         url:(NSString *)urlString
                      params:(NSDictionary *)params;
+
+@property (nonatomic, strong) SGDirWatchdog *dog;
 @end
 
 
@@ -263,7 +266,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                 if (cachedBlock) {
                     dispatch_queue_t zd_queue = dispatch_queue_create("ZD_Queue_POST", DISPATCH_QUEUE_CONCURRENT);
                     dispatch_async(zd_queue, ^{
-                        id cachedResponse = [ZDURLCache getCacheResponseWithURL:newURL params:params];
+                        id cachedResponse = [[ZDURLCache urlCache] getCacheResponseWithURL:newURL params:params];
                         id value = ZD_DecodeData(cachedResponse);
                         dispatch_sync(dispatch_get_main_queue(), ^{
                             value ? cachedBlock(value) : nil;
@@ -277,7 +280,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                     __strong __typeof(&*weakSelf)strongSelf = weakSelf;
                     id result = ZD_DecodeData(responseObject);
                     if (responseObject) {
-                        [ZDURLCache cacheResponseObject:result url:newURL params:params];
+                        [[ZDURLCache urlCache] cacheResponseObject:result url:newURL params:params];
                     }
                     
                     successBlock ? successBlock(result) : nil;
@@ -651,7 +654,7 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
 
 #pragma mark - 缓存POST请求
 
-+ (void)cacheResponseObject:(id)responseObject
+- (void)cacheResponseObject:(id)responseObject
                         url:(NSString *)urlString
                      params:(NSDictionary *)params {
     if (!ZD_IsEmptyOrNil(urlString) && responseObject && ![responseObject isKindOfClass:[NSNull class]]) {
@@ -659,15 +662,6 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
             NSString *directoryPath = ZD_CACHE_PATH;
             
             NSError *__autoreleasing error = nil;
-            BOOL isFileExist = [[NSFileManager defaultManager] fileExistsAtPath:directoryPath isDirectory:nil];
-            if (!isFileExist) {
-                [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath
-                                          withIntermediateDirectories:YES
-                                                           attributes:nil
-                                                                error:&error];
-                if (error) ZD_Log(@"创建文件夹失败 == %@", error);
-                error = nil;
-            }
             
             NSString *originString = ZD_CacheKey(urlString, params);
             NSString *path = [directoryPath stringByAppendingPathComponent:ZD_MD5(originString)];
@@ -689,7 +683,7 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
     }
 }
 
-+ (id)getCacheResponseWithURL:(NSString *)url
+- (id)getCacheResponseWithURL:(NSString *)url
                        params:(NSDictionary *)params {
     if (!url) return nil;
 
@@ -710,6 +704,8 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
 #pragma mark - 监听缓存文件夹
 
 - (void)monitorDirectory {
+    [self createCacheDirectory];
+    
     NSURL *directoryURL = [NSURL URLWithString:ZD_CACHE_PATH];
     _fileDescriptor = open(directoryURL.path.fileSystemRepresentation, O_EVTONLY);
     if (_fileDescriptor < 0) {
@@ -745,6 +741,21 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
 
 - (void)stopMonitor {
     dispatch_cancel(_source);
+}
+
+- (void)createCacheDirectory {
+    NSString *directoryPath = ZD_CACHE_PATH;
+    NSError *__autoreleasing *error = nil;
+    BOOL isFileExist = [[NSFileManager defaultManager] fileExistsAtPath:directoryPath isDirectory:nil];
+    if (!isFileExist) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath
+                                  withIntermediateDirectories:YES
+                                                   attributes:nil
+                                                        error:error];
+        if (error) ZD_Log(@"创建文件夹失败 == %@", *error);
+        error = nil;
+    }
+
 }
 
 #pragma mark

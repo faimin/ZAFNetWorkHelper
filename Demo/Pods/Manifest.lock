@@ -14,13 +14,16 @@ PODS:
   - AFNetworking/Serialization (3.0.4)
   - AFNetworking/UIKit (3.0.4):
     - AFNetworking/NSURLSession
+  - DirectoryWatchdog (1.1.0)
 
 DEPENDENCIES:
-  - AFNetworking (~> 3.0.1)
+  - AFNetworking (~> 3.0.4)
+  - DirectoryWatchdog (~> 1.1.0)
 
 SPEC CHECKSUMS:
   AFNetworking: a0075feb321559dc78d9d85b55d11caa19eabb93
+  DirectoryWatchdog: 85f0a92a52bc0d3d66346d80629227b44500506a
 
-PODFILE CHECKSUM: 339657bf23741f5db195dd35c97bdfe282967b38
+PODFILE CHECKSUM: 483d09d086004bcef5a38a06dbc506a40ebda824
 
-COCOAPODS: 1.0.1
+COCOAPODS: 1.2.0.beta.1
