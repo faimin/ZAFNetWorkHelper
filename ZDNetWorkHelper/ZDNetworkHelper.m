@@ -511,15 +511,14 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     if (ZD_IsEmptyOrNil(URLString) && ZD_IsEmptyOrNil(self.baseURLString)) return @"";
     
     NSString *originURL = [NSString stringWithFormat:@"%@%@", (self.baseURLString ?: @""), URLString];
-    NSString *tempURL = [originURL stringByReplacingOccurrencesOfString:@" " withString:@""];
-    NSString *newURL = @"";
-    if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_8_0) {
-        newURL = [tempURL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-    }
-    else {
-        newURL = [tempURL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    }
-    return newURL;
+    // 避免了2次转码
+    NSString *encodedURL = (NSString *)
+    CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+                                                              (CFStringRef)[originURL stringByReplacingOccurrencesOfString:@" " withString:@""],
+                                                              (CFStringRef)@"!$&'()*+,-./:;=?@_~%#[]",
+                                                              NULL,
+                                                              kCFStringEncodingUTF8));
+    return encodedURL;
 }
 
 + (void)detectNetworkStatus:(void(^)(ZDNetworkStatus status))networkStatus {
