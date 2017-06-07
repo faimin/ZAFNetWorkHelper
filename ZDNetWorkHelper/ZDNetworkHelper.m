@@ -11,13 +11,15 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <AFNetworking/AFNetworkActivityIndicatorManager.h>
 #import <AFNetworking/AFNetworking.h>
-#import <SGDirWatchdog.h>
+#import <DirectoryWatchdog/SGDirWatchdog.h>
 
+#ifndef Progress
 #define Progress(progress) CGFloat progressValue = 0.0f;                                    \
                     if (progress.totalUnitCount > 0) {                                      \
                         progressValue = (CGFloat)progress.completedUnitCount / progress.totalUnitCount;                                                               \
                     }                                                                       \
                     progressBlock ? progressBlock(progress, progressValue) : nil;
+#endif
 
 static const NSTimeInterval timeoutInterval = 30;
 
@@ -49,7 +51,7 @@ static id ZD_DecodeData(id data) {
     return result;
 }
 
-static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters){
+static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters) {
     if (!parameters) return URL;
     
     // 将参数字典转换成字符串
