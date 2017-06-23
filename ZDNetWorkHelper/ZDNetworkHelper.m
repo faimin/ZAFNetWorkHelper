@@ -514,13 +514,16 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     
     NSString *originURL = [NSString stringWithFormat:@"%@%@", (self.baseURLString ?: @""), URLString];
     // 避免了2次转码
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     NSString *encodedURL = (NSString *)
     CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                              (CFStringRef)[originURL stringByReplacingOccurrencesOfString:@" " withString:@""],
-                                                              (CFStringRef)@"!$&'()*+,-./:;=?@_~%#[]",
+                                                              (__bridge CFStringRef)[originURL stringByReplacingOccurrencesOfString:@" " withString:@""],
+                                                              (__bridge CFStringRef)@"!$&'()*+,-./:;=?@_~%#[]",
                                                               NULL,
                                                               kCFStringEncodingUTF8));
     return encodedURL;
+#pragma clang diagnostic pop
 }
 
 + (void)detectNetworkStatus:(void(^)(ZDNetworkStatus status))networkStatus {
