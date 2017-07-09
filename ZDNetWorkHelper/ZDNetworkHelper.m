@@ -46,8 +46,8 @@ static NSString *ZD_MD5(NSString *string) {
 static id ZD_DecodeData(id data) {
     if (!data) return nil;
     
-    NSError *__autoreleasing error;
-    id result = [data isKindOfClass:[NSData class]] ? [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error] : data;
+    NSError *__autoreleasing *error = NULL;
+    id result = [data isKindOfClass:[NSData class]] ? [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:error] : data;
     return result;
 }
 
@@ -55,8 +55,8 @@ static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters) {
     if (!parameters) return URL;
     
     // 将参数字典转换成字符串
-    NSError *__autoreleasing error = nil;
-    NSData *stringData = [NSJSONSerialization dataWithJSONObject:parameters options:NSJSONWritingPrettyPrinted error:&error];
+    NSError *__autoreleasing *error = NULL;
+    NSData *stringData = [NSJSONSerialization dataWithJSONObject:parameters options:NSJSONWritingPrettyPrinted error:error];
     NSString *paraString = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
     
     NSString *cacheKey = [NSString stringWithFormat:@"%@?%@", URL, paraString];
@@ -309,22 +309,22 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                                                     mimeType:@"image/jpeg"];
                         }
                         else if ([value isKindOfClass:[NSURL class]]) {
-                            NSError *__autoreleasing error;
+                            NSError *__autoreleasing *error = NULL;
                             NSURL *localFileURL = value;
                             [formData appendPartWithFileURL:localFileURL
                                                        name:localFileURL.absoluteString
                                                    fileName:localFileURL.absoluteString
                                                    mimeType:@"image/jpeg"
-                                                      error:&error];
+                                                      error:error];
                         }
                         else if ([value isKindOfClass:[NSString class]] && [(NSString *)value hasPrefix:@"http"]) {
-                            NSError *__autoreleasing error;
+                            NSError *__autoreleasing *error = NULL;
                             NSString *urlStr = value;
                             [formData appendPartWithFileURL:[NSURL fileURLWithPath:urlStr]
                                                        name:urlStr
                                                    fileName:urlStr
                                                    mimeType:@"image/jpeg"
-                                                      error:&error];
+                                                      error:error];
                         }
                     }
                 } progress:^(NSProgress * _Nonnull uploadProgress) {
@@ -373,9 +373,9 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
         BOOL isDirectory;
         BOOL isExistFile = [fileManager fileExistsAtPath:downloadPath isDirectory:&isDirectory];
         if (!(isExistFile && isDirectory)) {
-            NSError *__autoreleasing error;
-            [fileManager createDirectoryAtPath:downloadPath withIntermediateDirectories:YES attributes:nil error:&error];
-            if (error) ZD_Log(@"创建文件夹时的错误信息----->%@", error.localizedDescription);
+            NSError *__autoreleasing *error = NULL;
+            [fileManager createDirectoryAtPath:downloadPath withIntermediateDirectories:YES attributes:nil error:error];
+            if (*error) ZD_Log(@"创建文件夹时的错误信息----->%@", (*error).localizedDescription);
         }
         NSString *savedPath = [downloadPath stringByAppendingPathComponent:response.suggestedFilename];
         ZD_Log(@"下载完成,文件路径 = %@", savedPath);
@@ -644,8 +644,8 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
     if (!responseObjc) return;
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSError *__autoreleasing error = nil;
-        NSData *data = [NSJSONSerialization dataWithJSONObject:responseObjc options:NSJSONWritingPrettyPrinted error:&error];
+        NSError *__autoreleasing *error = NULL;
+        NSData *data = [NSJSONSerialization dataWithJSONObject:responseObjc options:NSJSONWritingPrettyPrinted error:error];
         
         NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
         userInfo[ZDURLCachedExpirationKey] = [NSDate date];
@@ -665,7 +665,7 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             NSString *directoryPath = ZD_CACHE_PATH;
             
-            NSError *__autoreleasing error = nil;
+            NSError *__autoreleasing *error = NULL;
             
             NSString *originString = ZD_CacheKey(urlString, params);
             NSString *path = [directoryPath stringByAppendingPathComponent:ZD_MD5(originString)];
@@ -677,7 +677,7 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
             else {
                 data = [NSJSONSerialization dataWithJSONObject:responseObject
                                                        options:NSJSONWritingPrettyPrinted
-                                                         error:&error];
+                                                         error:error];
             }
             
             if (data && !error) {
@@ -698,9 +698,9 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
     NSData *data = [[NSFileManager defaultManager] contentsAtPath:path];
     id cacheData = nil;
     if (data) {
-        NSError *__autoreleasing error = nil;
-        cacheData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
-        if (error) ZD_Log(@"%@", error);
+        NSError *__autoreleasing *error = NULL;
+        cacheData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:error];
+        if (*error) ZD_Log(@"%@", *error);
     }
     return cacheData;
 }
@@ -749,7 +749,7 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
 
 - (void)createCacheDirectory {
     NSString *directoryPath = ZD_CACHE_PATH;
-    NSError *__autoreleasing *error = nil;
+    NSError *__autoreleasing *error = NULL;
     BOOL isFileExist = [[NSFileManager defaultManager] fileExistsAtPath:directoryPath isDirectory:nil];
     if (!isFileExist) {
         [[NSFileManager defaultManager] createDirectoryAtPath:directoryPath
@@ -771,13 +771,13 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
     
     if ([[NSFileManager defaultManager] fileExistsAtPath:directoryPath isDirectory:&isDir]) {
         if (isDir) {
-            NSError *__autoreleasing error = nil;
-            NSArray<NSString *> *array = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:directoryPath error:&error];
+            NSError *__autoreleasing *error = NULL;
+            NSArray<NSString *> *array = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:directoryPath error:error];
             if (error == nil) {
                 for (NSString *subPath in array) {
                     NSString *path = [directoryPath stringByAppendingPathComponent:subPath];
-                    NSDictionary *dict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:&error];
-                    if (!error) {
+                    NSDictionary *dict = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:error];
+                    if (!*error) {
                         total += [dict[NSFileSize] unsignedIntegerValue];
                     }
                 }
@@ -791,8 +791,8 @@ static NSTimeInterval const ZDURLCacheExpirationInterval = 7 * 24 * 60 * 60;
     NSString *directoryPath = ZD_CACHE_PATH;
     
     if ([[NSFileManager defaultManager] fileExistsAtPath:directoryPath isDirectory:nil]) {
-        NSError *__autoreleasing error = nil;
-        [[NSFileManager defaultManager] removeItemAtPath:directoryPath error:&error];
+        NSError *__autoreleasing *error = NULL;
+        [[NSFileManager defaultManager] removeItemAtPath:directoryPath error:error];
     }
 }
 
