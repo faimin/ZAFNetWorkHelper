@@ -10,15 +10,15 @@
 #import <pthread/pthread.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <AFNetworking/AFNetworkActivityIndicatorManager.h>
-#import <AFNetworking/AFNetworking.h>
 #import <DirectoryWatchdog/SGDirWatchdog.h>
 
 #ifndef Progress
-#define Progress(progress) CGFloat progressValue = 0.0f;                                    \
-                    if (progress.totalUnitCount > 0) {                                      \
-                        progressValue = (CGFloat)progress.completedUnitCount / progress.totalUnitCount;                                                               \
-                    }                                                                       \
-                    progressBlock ? progressBlock(progress, progressValue) : nil;
+#define Progress(progress)                                                          \
+CGFloat progressValue = 0.0f;                                                       \
+if (progress.totalUnitCount > 0) {                                                  \
+    progressValue = (CGFloat)progress.completedUnitCount / progress.totalUnitCount; \
+}                                                                                   \
+progressBlock ? progressBlock(progress, progressValue) : nil;
 #endif
 
 static const NSTimeInterval timeoutInterval = 30;
@@ -58,9 +58,7 @@ static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters) {
     NSError *__autoreleasing *error = NULL;
     NSData *stringData = [NSJSONSerialization dataWithJSONObject:parameters options:NSJSONWritingPrettyPrinted error:error];
     NSString *paraString = [[NSString alloc] initWithData:stringData encoding:NSUTF8StringEncoding];
-    
     NSString *cacheKey = [NSString stringWithFormat:@"%@?%@", URL, paraString];
-    
     return cacheKey;
 }
 
@@ -90,16 +88,13 @@ static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters) {
 @end
 
 
-@interface ZDNetworkHelper ()
-//@property (nonatomic, strong, readonly) AFHTTPSessionManager *httpSessionManager;
-@end
+//***********************************************************
 
-static AFHTTPSessionManager *_httpSessionManager;
+static ZDHTTPSessionManager *_httpSessionManager;
 static BOOL _hasCertificate;
 static ZDNetworkStatus _networkStatus;
-@implementation ZDNetworkHelper
-{
-    //dispatch_semaphore_t _semaphore;
+
+@implementation ZDNetworkHelper {
     pthread_mutex_t _lock;
 }
 
@@ -108,37 +103,43 @@ static ZDNetworkStatus _networkStatus;
 }
 
 + (void)initialize {
-    [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
-    
-    _httpSessionManager = [AFHTTPSessionManager manager];
-    
-    _httpSessionManager.requestSerializer.timeoutInterval = timeoutInterval;
-    
-    _httpSessionManager.requestSerializer = [AFJSONRequestSerializer serializer];
-    
-    _httpSessionManager.responseSerializer = ({
-        AFJSONResponseSerializer *jsonResponseSerializer = [AFJSONResponseSerializer serializerWithReadingOptions:NSJSONReadingAllowFragments];
-        jsonResponseSerializer.removesKeysWithNullValues = YES;
-        jsonResponseSerializer;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
+        
+        _httpSessionManager = [ZDHTTPSessionManager manager];
+        _httpSessionManager.requestSerializer.timeoutInterval = timeoutInterval;
+        _httpSessionManager.requestSerializer = [AFJSONRequestSerializer serializer];
+        _httpSessionManager.responseSerializer = ({
+            AFJSONResponseSerializer *jsonResponseSerializer = [AFJSONResponseSerializer serializerWithReadingOptions:NSJSONReadingAllowFragments];
+            jsonResponseSerializer.removesKeysWithNullValues = YES;
+            jsonResponseSerializer;
+        });
+        
+        ///`contentTypes`: http://www.iana.org/assignments/media-types/media-types.xhtml
+        _httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:
+                                                                         @"text/plain",
+                                                                         @"text/json",
+                                                                         @"text/xml",
+                                                                         @"text/html",
+                                                                         @"text/javascript",
+                                                                         @"application/json",
+                                                                         @"application/javascript",
+                                                                         @"application/xml",
+                                                                         @"image/*",
+                                                                         nil];
+        
+        // 监控网络
+        [self detectNetworkStatus:^(ZDNetworkStatus status) {
+            _networkStatus = status;
+        }];
     });
-    
-    ///`contentTypes`: http://www.iana.org/assignments/media-types/media-types.xhtml
-    _httpSessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:
-                                                                     @"text/plain",
-                                                                     @"text/json",
-                                                                     @"text/xml",
-                                                                     @"text/html",
-                                                                     @"text/javascript",
-                                                                     @"application/json",
-                                                                     @"application/javascript",
-                                                                     @"application/xml",
-                                                                     @"image/*",
-                                                                     nil];
-    
-    // 监控网络
-    [self detectNetworkStatus:^(ZDNetworkStatus status) {
-        _networkStatus = status;
-    }];
+}
+
+#pragma mark - Configuration
+
+- (void)overrideConfiguration:(void(^)(ZDHTTPSessionManager *))configBlock {
+    if (configBlock) configBlock(_httpSessionManager);
 }
 
 #pragma mark - Singleton
@@ -156,7 +157,6 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 - (instancetype)init {
     self = [super init];
     if (self) {
-        //_semaphore = dispatch_semaphore_create(1);
         pthread_mutexattr_t attr;
         pthread_mutexattr_init(&attr);
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
@@ -165,18 +165,18 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     return self;
 }
 
-//+ (instancetype)allocWithZone:(struct _NSZone *)zone {
-//    static dispatch_once_t onceToken;
-//    dispatch_once(&onceToken, ^{
-//        zdNetworkHelper = [super allocWithZone:zone];
-//    });
-//    
-//    return zdNetworkHelper;
-//}
-//
-//- (id)copyWithZone:(NSZone *)zone {
-//    return zdNetworkHelper;
-//}
++ (instancetype)allocWithZone:(struct _NSZone *)zone {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        zdNetworkHelper = [super allocWithZone:zone];
+    });
+    
+    return zdNetworkHelper;
+}
+
+- (id)copyWithZone:(NSZone *)zone {
+    return zdNetworkHelper;
+}
 
 - (NSMutableDictionary *)allTasks {
     static NSMutableDictionary *_allTasks = nil;
@@ -205,12 +205,14 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                                 progress:(ProgressHandle)progressBlock
                                  success:(SuccessHandle)successBlock
                                  failure:(FailureHandle)failureBlock {
+    if (ZD_IsEmptyOrNil(URLString)) return nil;
+    
 	// 1.处理URL
     NSString *newURL = [self handleURL:URLString];
 	
 	// 2.发送请求
 	NSURLSessionDataTask *sessionTask = nil;
-	__weak __typeof(&*self) weakSelf = self;
+	__weak typeof(self) weakTarget = self;
     switch (httpMethod)
     {
         case HttpMethod_GET: {
@@ -218,7 +220,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             // 读取本地缓存
             NSURLRequest *urlRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:newURL]];
             if (cachedBlock) {
-                dispatch_queue_t zd_queue = dispatch_queue_create("ZD_Queue_GET", DISPATCH_QUEUE_CONCURRENT);
+                dispatch_queue_t zd_queue = dispatch_queue_create("ZD_Queue_GET", dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT, QOS_CLASS_DEFAULT, 0));
                 dispatch_async(zd_queue, ^{
                     [NSURLCache setSharedURLCache:[ZDURLCache urlCache]];
                     NSCachedURLResponse *cachedResponse = [[ZDURLCache urlCache] cachedResponseForRequest:urlRequest];
@@ -233,18 +235,18 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             sessionTask = [_httpSessionManager GET:newURL parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
                 Progress(downloadProgress)
             } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                __strong __typeof(&*weakSelf)strongSelf = weakSelf;
+                __strong typeof(weakTarget) self = weakTarget;
                 id result = ZD_DecodeData(responseObject);
                 if (responseObject) {
                     [[ZDURLCache urlCache] storeCachedResponse:task.response responseObjc:result forRequest:urlRequest];
                 }
 
                 successBlock ? successBlock(result) : nil;
-                [[strongSelf allTasks] setValue:nil forKey:URLString];
+                [[self allTasks] setValue:nil forKey:URLString];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                __strong __typeof(&*weakSelf)strongSelf = weakSelf;
+                __strong typeof(weakTarget) self = weakTarget;
                 failureBlock ? failureBlock(error) : nil;
-                [[strongSelf allTasks] setValue:nil forKey:URLString];
+                [[self allTasks] setValue:nil forKey:URLString];
             }];
             
             break;
@@ -266,7 +268,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             if (!isDataFile) {
                 // 参数中不包含NSData类型
                 if (cachedBlock) {
-                    dispatch_queue_t zd_queue = dispatch_queue_create("ZD_Queue_POST", DISPATCH_QUEUE_CONCURRENT);
+                    dispatch_queue_t zd_queue = dispatch_queue_create("ZD_Queue_POST", dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT, QOS_CLASS_DEFAULT, 0));
                     dispatch_async(zd_queue, ^{
                         id cachedResponse = [[ZDURLCache urlCache] getCacheResponseWithURL:newURL params:params];
                         id value = ZD_DecodeData(cachedResponse);
@@ -279,18 +281,18 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                 sessionTask = [_httpSessionManager POST:newURL parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
                     Progress(uploadProgress)
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    __strong __typeof(&*weakSelf)strongSelf = weakSelf;
+                    __strong typeof(weakTarget) self = weakTarget;
                     id result = ZD_DecodeData(responseObject);
                     if (responseObject) {
                         [[ZDURLCache urlCache] cacheResponseObject:result url:newURL params:params];
                     }
                     
                     successBlock ? successBlock(result) : nil;
-                    [[strongSelf allTasks] setValue:nil forKey:URLString];
+                    [[self allTasks] setValue:nil forKey:URLString];
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    __strong __typeof(&*weakSelf)strongSelf = weakSelf;
+                    __strong typeof(weakTarget) self = weakTarget;
                     failureBlock ? failureBlock(error) : nil;
-                    [[strongSelf allTasks] setValue:nil forKey:URLString];
+                    [[self allTasks] setValue:nil forKey:URLString];
                 }];
             }
             else {
@@ -330,13 +332,13 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
                 } progress:^(NSProgress * _Nonnull uploadProgress) {
                     Progress(uploadProgress)
                 } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    __strong __typeof(&*weakSelf)strongSelf = weakSelf;
+                    __strong typeof(weakTarget) self = weakTarget;
                     successBlock ? successBlock(ZD_DecodeData(responseObject)) : nil;
-                    [[strongSelf allTasks] setValue:nil forKey:URLString];
+                    [[self allTasks] setValue:nil forKey:URLString];
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    __strong __typeof(&*weakSelf)strongSelf = weakSelf;
+                    __strong typeof(weakTarget) self = weakTarget;
                     failureBlock ? failureBlock(error) : nil;
-                    [[strongSelf allTasks] setValue:nil forKey:URLString];
+                    [[self allTasks] setValue:nil forKey:URLString];
                 }];
             }
             
@@ -363,7 +365,7 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
     
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlString]];
     
-    __weak __typeof(&*self)weakSelf = self;
+    __weak typeof(self) weakTarget = self;
     NSURLSessionDownloadTask *downloadTask = [_httpSessionManager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
         Progress(downloadProgress)
     } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
@@ -377,13 +379,13 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
             [fileManager createDirectoryAtPath:downloadPath withIntermediateDirectories:YES attributes:nil error:error];
             if (*error) ZD_Log(@"创建文件夹时的错误信息----->%@", (*error).localizedDescription);
         }
+        
         NSString *savedPath = [downloadPath stringByAppendingPathComponent:response.suggestedFilename];
         ZD_Log(@"下载完成,文件路径 = %@", savedPath);
-        
         return [NSURL fileURLWithPath:savedPath];
     } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
-        __strong __typeof(&*weakSelf)strongSelf = weakSelf;
-        [[strongSelf allTasks] setValue:nil forKey:urlString];
+        __strong typeof(weakTarget) self = weakTarget;
+        [[self allTasks] setValue:nil forKey:urlString];
         
         (successBlock && filePath) ? successBlock(filePath.absoluteString) : nil;
         (failureBlock && error) ? failureBlock(error) : nil;
@@ -480,22 +482,18 @@ static ZDNetworkHelper *zdNetworkHelper = nil;
 //MARK:取消单一或者全部任务
 - (void)cancelTaskWithURL:(NSString *)urlString {
     if (ZD_IsEmptyOrNil(urlString)) return;
-    //dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     pthread_mutex_lock(&_lock);
     NSURLSessionTask *task = [self allTasks][urlString];
     [task cancel];
     task ? [[self allTasks] setValue:nil forKey:urlString] : nil;
-    //dispatch_semaphore_signal(_semaphore);
     pthread_mutex_unlock(&_lock);
 }
 
 - (void)cancelAllTasks {
-    //dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     pthread_mutex_lock(&_lock);
     for (NSURLSessionTask *task in [[self allTasks] allValues]) {
         [task cancel];
     }
-    //dispatch_semaphore_signal(_semaphore);
     pthread_mutex_unlock(&_lock);
 }
 
