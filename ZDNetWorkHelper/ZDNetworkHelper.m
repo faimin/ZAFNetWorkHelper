@@ -10,7 +10,6 @@
 #import <pthread/pthread.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <AFNetworking/AFNetworkActivityIndicatorManager.h>
-#import <DirectoryWatchdog/SGDirWatchdog.h>
 
 #ifndef Progress
 #define Progress(progress)                                                          \
@@ -84,7 +83,6 @@ static NSString *ZD_CacheKey(NSString *URL, NSDictionary *parameters) {
                         url:(NSString *)urlString
                      params:(NSDictionary *)params;
 
-@property (nonatomic, strong) SGDirWatchdog *dog;
 @end
 
 
