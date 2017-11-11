@@ -12,5 +12,5 @@ Pod::Spec.new do |s|
     :tag => s.version }
   s.source_files = 'ZDNetWorkHelper/*.{h,m}'
   s.requires_arc = true
-  s.dependency 'AFNetworking', "~> 3.0.4"
+  s.dependency 'AFNetworking', "~> 3.1"
 end
