@@ -61,7 +61,7 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
 - (nullable NSURLSessionDataTask *)requestWithURL:(NSString *)URLString
                                            params:(nullable id)params
                                        httpMethod:(HttpMethod)httpMethod
-                                         progress:(ProgressHandle)progressBlock
+                                         progress:(nullable ProgressHandle)progressBlock
                                           success:(nullable SuccessHandle)successBlock
                                           failure:(nullable FailureHandle)failureBlock;
 
@@ -69,19 +69,19 @@ typedef void(^CachedHandle)(id _Nullable cachedResponse);
                                            params:(nullable id)params
                                        httpMethod:(HttpMethod)httpMethod
                                    cachedResponse:(nullable CachedHandle)cachedBlock
-                                         progress:(ProgressHandle)progressBlock
+                                         progress:(nullable ProgressHandle)progressBlock
                                           success:(SuccessHandle)successBlock
                                           failure:(FailureHandle)failureBlock;
 
 - (nullable NSURLSessionDownloadTask *)downloadWithURL:(NSString *)urlString
                                             saveToPath:(nullable NSString *)savePath
-                                              progress:(ProgressHandle)progressBlock
+                                              progress:(nullable ProgressHandle)progressBlock
                                                success:(SuccessHandle)successBlock // 回调的是filePath
                                                failure:(FailureHandle)failureBlock;
 
 - (void)uploadFileWithURL:(NSString *)urlString
                  filePath:(NSString *)filePath
-                 progress:(ProgressHandle)progressBlock
+                 progress:(nullable ProgressHandle)progressBlock
                   success:(SuccessHandle)successBlock
                   failure:(FailureHandle)failureBlock;
 
